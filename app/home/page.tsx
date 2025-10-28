@@ -20,6 +20,7 @@ interface Category {
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
@@ -46,9 +47,11 @@ export default function HomePage() {
           if (result.data) {
             setCategories(result.data);
           }
+          setCategoriesLoading(false);
         })
         .catch((error) => {
           console.error('Error fetching categories:', error);
+          setCategoriesLoading(false);
         });
     }
   }, [isLoading]);
@@ -72,7 +75,10 @@ export default function HomePage() {
       <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-3">
+            <button 
+              onClick={() => router.push('/home')}
+              className="flex items-center gap-3 hover:opacity-80 transition-opacity"
+            >
               <Image 
                 src="/Logo.jpg" 
                 alt="FreedomU Logo" 
@@ -83,7 +89,7 @@ export default function HomePage() {
               <h1 className="text-2xl font-bold text-black dark:text-zinc-50">
                 FreedomU
               </h1>
-            </div>
+            </button>
             <button
               onClick={handleLogout}
               className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition-colors"
@@ -108,9 +114,10 @@ export default function HomePage() {
           {categories.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {categories.map((category) => (
-                <div
+                <button
                   key={category.category}
-                  className="flex flex-col bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800"
+                  onClick={() => router.push(`/${category.uuid}`)}
+                  className="flex flex-col bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md transition-all text-left"
                 >
                   {/* Top Area - Title */}
                   <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -146,12 +153,18 @@ export default function HomePage() {
                       </div>
                     )}
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           )}
 
-          {categories.length === 0 && (
+          {categoriesLoading ? (
+            <div className="mt-12 p-8 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
+              <p className="text-zinc-500 dark:text-zinc-400 text-center">
+                Loading categories...
+              </p>
+            </div>
+          ) : categories.length === 0 && (
             <div className="mt-12 p-8 bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800">
               <p className="text-zinc-500 dark:text-zinc-400 text-center">
                 No categories available yet.
