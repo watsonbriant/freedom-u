@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: true });
     } else {
       return NextResponse.json(
-        { error: 'Invalid password' },
+        { error: 'Incorrect password. Please try again.' },
         { status: 401 }
       );
     }

@@ -1,0 +1,299 @@
+[
+    {
+      "table_name": "categories",
+      "column_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "categories",
+      "column_name": "category",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "constraint_type": "PRIMARY KEY",
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "categories",
+      "column_name": "category_description",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "categories",
+      "column_name": "category_order",
+      "data_type": "smallint",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "courses",
+      "column_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "courses",
+      "column_name": "category",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": "categories",
+      "foreign_column_name": "category"
+    },
+    {
+      "table_name": "courses",
+      "column_name": "course_name",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "constraint_type": "PRIMARY KEY",
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "courses",
+      "column_name": "seq_order",
+      "data_type": "smallint",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "courses",
+      "column_name": "course_description",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "item_types",
+      "column_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "item_types",
+      "column_name": "item_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "constraint_type": "PRIMARY KEY",
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "constraint_type": "PRIMARY KEY",
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "video_title",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "video_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "video_duration",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "video_description",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "text_content",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "text_title",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "item_type",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": "item_types",
+      "foreign_column_name": "item_type"
+    },
+    {
+      "table_name": "items",
+      "column_name": "document_title",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "document_description",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "document_url",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "items",
+      "column_name": "quiz",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": "quizzes",
+      "foreign_column_name": "quiz_name"
+    },
+    {
+      "table_name": "items",
+      "column_name": "course",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": "courses",
+      "foreign_column_name": "course_name"
+    },
+    {
+      "table_name": "items",
+      "column_name": "item_order",
+      "data_type": "smallint",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "quiz_questions",
+      "column_name": "id",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "constraint_type": "PRIMARY KEY",
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "quiz_questions",
+      "column_name": "question",
+      "data_type": "text",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "quiz_questions",
+      "column_name": "options",
+      "data_type": "jsonb",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "quiz_questions",
+      "column_name": "correct_answer",
+      "data_type": "integer",
+      "is_nullable": "NO",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "quiz_questions",
+      "column_name": "quiz",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": "quizzes",
+      "foreign_column_name": "quiz_name"
+    },
+    {
+      "table_name": "quiz_questions",
+      "column_name": "quiz_order",
+      "data_type": "smallint",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "quizzes",
+      "column_name": "uuid",
+      "data_type": "uuid",
+      "is_nullable": "NO",
+      "constraint_type": "PRIMARY KEY",
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    },
+    {
+      "table_name": "quizzes",
+      "column_name": "quiz_name",
+      "data_type": "text",
+      "is_nullable": "YES",
+      "constraint_type": null,
+      "foreign_table_name": null,
+      "foreign_column_name": null
+    }
+  ]

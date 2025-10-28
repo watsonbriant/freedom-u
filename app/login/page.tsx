@@ -30,7 +30,7 @@ export default function LoginPage() {
         router.push('/home');
         router.refresh();
       } else {
-        setError(data.error || 'Invalid password');
+        setError(data.error || 'Incorrect password. Please try again.');
       }
     } catch (err) {
       setError('An error occurred. Please try again.');
@@ -56,9 +56,6 @@ export default function LoginPage() {
                 FreedomU
               </h1>
             </div>
-            <p className="text-lg text-zinc-600 dark:text-zinc-400">
-              Welcome to your training platform
-            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
