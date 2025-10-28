@@ -101,7 +101,7 @@ export default function HomePage() {
               FreedomU
             </h2>
             <p className="text-lg text-zinc-600 dark:text-zinc-400 mt-2">
-              A Freedom House training library. 
+              A Freedom House training library.
             </p>
           </div>
 
