@@ -107,10 +107,14 @@ export default function HomePage() {
 
           {categories.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {categories.map((category) => (
+              {categories.map((category) => {
+                // Convert category name to URL-friendly format
+                const categorySlug = category.category.toLowerCase().replace(/\s+/g, '-');
+                return (
                 <div
                   key={category.category}
-                  className="flex flex-col bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800"
+                  onClick={() => router.push(`/${categorySlug}`)}
+                  className="flex flex-col bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 cursor-pointer hover:shadow-lg transition-shadow"
                 >
                   {/* Top Area - Title */}
                   <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
@@ -147,7 +151,8 @@ export default function HomePage() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
