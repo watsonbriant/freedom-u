@@ -1,10 +1,19 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from "next/image";
 
-export default function LoginPage() {
+function ErrorDisplay({ error }: { error: string }) {
+  if (!error) return null;
+  return (
+    <div className="text-red-600 dark:text-red-400 text-sm">
+      {error}
+    </div>
+  );
+}
+
+function LoginContent() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -44,11 +53,7 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-4">
-            {error && (
-              <div className="text-red-600 dark:text-red-400 text-sm">
-                {error}
-              </div>
-            )}
+            <ErrorDisplay error={error} />
 
             <p className="text-sm text-center text-zinc-600 dark:text-zinc-400 mb-4">
               Sign in with your MinistryPlatform credentials
@@ -65,6 +70,33 @@ export default function LoginPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black px-4">
+      <main className="flex min-h-screen w-full max-w-md flex-col items-center justify-center py-32">
+        <div className="w-full space-y-8">
+          <div className="text-center">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <Image 
+                src="/Logo.jpg" 
+                alt="FreedomU Logo" 
+                width={40} 
+                height={40}
+                className="rounded"
+              />
+              <h1 className="text-4xl font-bold tracking-tight text-black dark:text-zinc-50">
+                FreedomU
+              </h1>
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>}>
+      <LoginContent />
+    </Suspense>
   );
 }
 
