@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import Image from "next/image";
-import { File, Video, TextAlignStart, GraduationCap } from 'lucide-react';
+import { File, Video, TextAlignStart, GraduationCap, FileVideoCamera } from 'lucide-react';
 
 interface Course {
   uuid: string;
@@ -145,6 +145,8 @@ export default function CategoryLayout({
         return <File className="w-4 h-4" />;
       case 'video':
         return <Video className="w-4 h-4" />;
+      case 'video_doc':
+        return <FileVideoCamera className="w-4 h-4" />;
       case 'quiz':
         return <GraduationCap className="w-4 h-4" />;
       default:
@@ -160,6 +162,8 @@ export default function CategoryLayout({
         return item.video_title || 'Video';
       case 'document':
         return item.document_title || 'Document';
+      case 'video_doc':
+        return item.video_title || 'Video Document';
       case 'text':
         return item.text_title || 'Text';
       case 'quiz':

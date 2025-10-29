@@ -523,6 +523,84 @@ export default function ItemDetailPage() {
           </div>
         );
 
+      case 'video_doc':
+        return (
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-black dark:text-zinc-50 mb-4">
+              {item.video_title || 'Video Document'}
+            </h2>
+            {item.document_description && (
+              <div className="mt-4 mb-6">
+                <p className="text-base text-zinc-600 dark:text-zinc-400 whitespace-pre-line">
+                  {item.document_description}
+                </p>
+              </div>
+            )}
+            {item.document_url && (
+              <div className="mt-6 mb-8">
+                <button
+                  onClick={() => {
+                    if (!item.document_url) return;
+                    const link = document.createElement('a');
+                    link.href = toDropboxDirectUrl(item.document_url);
+                    link.download = '';
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                  }}
+                  className="inline-flex items-center px-4 py-2 bg-black dark:bg-white text-white dark:text-black rounded-md hover:opacity-80 transition-opacity"
+                >
+                  Download PDF
+                </button>
+              </div>
+            )}
+            {item.video_url && (
+              <div className="mt-6">
+                {
+                  // Check if it's a Vimeo URL
+                  item.video_url.includes('vimeo.com') ? (
+                    <iframe
+                      src={item.video_url.replace(/vimeo\.com\/(\d+)\/?(.*)/, 'player.vimeo.com/video/$1?h=$2')}
+                      className="w-full aspect-video rounded-lg border border-zinc-200 dark:border-zinc-800"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : 
+                  // Check if it's a YouTube URL
+                  (item.video_url.includes('youtube.com') || item.video_url.includes('youtu.be')) ? (
+                    <iframe
+                      src={toYoutubeEmbedUrl(item.video_url)}
+                      className="w-full aspect-video rounded-lg border border-zinc-200 dark:border-zinc-800"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) :
+                  // Check if it's a Dropbox link
+                  item.video_url.includes('dropbox.com') ? (
+                    <VideoPlayer
+                      src={toDropboxRawUrl(item.video_url)}
+                      preventFastForward={course?.category === 'Leadership Pipeline'}
+                    />
+                  ) : (
+                    // Assume it's any other video URL
+                    <iframe
+                      src={item.video_url}
+                      className="w-full aspect-video rounded-lg border border-zinc-200 dark:border-zinc-800"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  )
+                }
+              </div>
+            )}
+            {item.video_duration && (
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-4">
+                Duration: {item.video_duration}
+              </p>
+            )}
+          </div>
+        );
+
       case 'quiz':
         return (
           <>
