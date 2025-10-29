@@ -44,15 +44,14 @@ export default function TestPage() {
       <p>Embed previews below...</p>
       
       <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // Feb 2024</h2>
-        <CopyableUrl url="https://www.youtube.com/embed/4UUOmmLfydk?si=bTDpQmPPCOQQQSaO" />
+        <h2>Craig Groeschel // Four Keys to Spot the Talent Others Miss</h2>
+        <CopyableUrl url="https://www.youtube.com/embed/MboelLe1reM" />
         <iframe 
           width="560" 
           height="315" 
-          src="https://www.youtube.com/embed/4UUOmmLfydk?si=bTDpQmPPCOQQQSaO" 
-          title="YouTube video player" 
+          src="https://www.youtube.com/embed/MboelLe1reM" 
           frameBorder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" 
           allowFullScreen
           style={{ maxWidth: '100%', width: '100%', aspectRatio: '16/9' }}
         />
@@ -60,124 +59,86 @@ export default function TestPage() {
       </div>
 
       <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // Sep 2023</h2>
-        <CopyableUrl url="https://player.vimeo.com/video/869309588?h=e0ba851e8e&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" />
-        <div style={{ padding: '56.25% 0 0 0', position: 'relative' }}>
-          <iframe 
-            src="https://player.vimeo.com/video/869309588?h=e0ba851e8e&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
-            frameBorder="0" 
-            allow="autoplay; fullscreen; picture-in-picture" 
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
-            title="Leading Edge - 9.28.23"
-          />
-        </div>
-        <script src="https://player.vimeo.com/api/player.js" />
-        <hr style={{ margin: '2rem 0' }} />
-      </div>
-
-      <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // Mar 2023</h2>
-        <CopyableUrl url="https://player.vimeo.com/video/811099463?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" />
-        <div style={{ padding: '56.25% 0 0 0', position: 'relative' }}>
-          <iframe 
-            src="https://player.vimeo.com/video/811099463?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
-            frameBorder="0" 
-            allow="autoplay; fullscreen; picture-in-picture" 
-            style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }} 
-            title="Leading Edge - March 2023"
-          />
-        </div>
-        <script src="https://player.vimeo.com/api/player.js" />
-        <hr style={{ margin: '2rem 0' }} />
-      </div>
-
-      <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // Sep 2022</h2>
-        <CopyableUrl url="https://player.vimeo.com/video/755325266?h=1c521da05b&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" />
+        <h2>John Maxwell // Leadership Podcast</h2>
+        <CopyableUrl url="https://embed.podcasts.apple.com/us/podcast/love-respect-podcast-relationships-marriage-theology/id897327904" />
         <iframe 
-          src="https://player.vimeo.com/video/755325266?h=1c521da05b&amp;badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479" 
-          width="1920" 
-          height="1080" 
+          allow="autoplay *; encrypted-media *; fullscreen *" 
           frameBorder="0" 
-          allow="autoplay; fullscreen; picture-in-picture" 
-          allowFullScreen 
-          title="Leading Edge"
-          style={{ maxWidth: '100%', width: '100%', aspectRatio: '16/9', height: 'auto' }}
+          height="450" 
+          style={{ width: '100%', maxWidth: '660px', overflow: 'hidden', background: 'transparent' }}
+          sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" 
+          src="https://embed.podcasts.apple.com/us/podcast/love-respect-podcast-relationships-marriage-theology/id897327904"
         />
         <hr style={{ margin: '2rem 0' }} />
       </div>
 
       <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // Jan 2022</h2>
-        <CopyableUrl url="https://player.vimeo.com/video/668432782?h=59b4816fb1&title=0&byline=0&portrait=0" />
+        <h2>Leading Second // Being an Unoffendable Leader</h2>
+        <CopyableUrl url="https://embed.podcasts.apple.com/us/podcast/season-one-ep-021-brandon-stewart-joshua-bingle-on/id1352176626?i=1000422094335" />
         <iframe 
-          src="https://player.vimeo.com/video/668432782?h=59b4816fb1&title=0&byline=0&portrait=0" 
-          width="640" 
-          height="360" 
+          allow="autoplay *; encrypted-media *; fullscreen *" 
           frameBorder="0" 
-          allow="autoplay; fullscreen; picture-in-picture" 
-          allowFullScreen
-          style={{ maxWidth: '100%', width: '100%', aspectRatio: '16/9', height: 'auto' }}
+          height="175" 
+          style={{ width: '100%', maxWidth: '660px', overflow: 'hidden', background: 'transparent' }}
+          sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" 
+          src="https://embed.podcasts.apple.com/us/podcast/season-one-ep-021-brandon-stewart-joshua-bingle-on/id1352176626?i=1000422094335"
         />
         <hr style={{ margin: '2rem 0' }} />
       </div>
 
       <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // May 2021</h2>
-        <CopyableUrl url="https://player.vimeo.com/video/549047952?h=74c60a934b" />
+        <h2>Leading Second // How to Lead When You're Not in Charge</h2>
+        <CopyableUrl url="https://embed.podcasts.apple.com/us/podcast/season-two-ep-027-clay-scroggins-on-how-to-lead-when/id1352176626?i=1000428879821" />
         <iframe 
-          src="https://player.vimeo.com/video/549047952?h=74c60a934b" 
-          width="640" 
-          height="360" 
+          allow="autoplay *; encrypted-media *; fullscreen *" 
           frameBorder="0" 
-          allow="autoplay; fullscreen; picture-in-picture" 
-          allowFullScreen
-          style={{ maxWidth: '100%', width: '100%', aspectRatio: '16/9', height: 'auto' }}
+          height="175" 
+          style={{ width: '100%', maxWidth: '660px', overflow: 'hidden', background: 'transparent' }}
+          sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" 
+          src="https://embed.podcasts.apple.com/us/podcast/season-two-ep-027-clay-scroggins-on-how-to-lead-when/id1352176626?i=1000428879821"
         />
         <hr style={{ margin: '2rem 0' }} />
       </div>
 
       <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // Jan 2021</h2>
-        <CopyableUrl url="https://player.vimeo.com/video/505687879?h=3ddab167b0" />
+        <h2>Leading Second // John Morgan on Identifying and Protecting Our Lives and Churches from Division</h2>
+        <CopyableUrl url="https://embed.podcasts.apple.com/us/podcast/season-three-ep-72-john-morgan-on-identifying-protecting/id1352176626?i=1000496488444" />
         <iframe 
-          src="https://player.vimeo.com/video/505687879?h=3ddab167b0" 
-          width="640" 
-          height="360" 
+          allow="autoplay *; encrypted-media *; fullscreen *" 
           frameBorder="0" 
-          allow="autoplay; fullscreen; picture-in-picture" 
-          allowFullScreen
-          style={{ maxWidth: '100%', width: '100%', aspectRatio: '16/9', height: 'auto' }}
+          height="175" 
+          style={{ width: '100%', maxWidth: '660px', overflow: 'hidden', background: 'transparent' }}
+          sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" 
+          src="https://embed.podcasts.apple.com/us/podcast/season-three-ep-72-john-morgan-on-identifying-protecting/id1352176626?i=1000496488444"
         />
         <hr style={{ margin: '2rem 0' }} />
       </div>
 
       <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // Fall 2020</h2>
-        <CopyableUrl url="https://player.vimeo.com/video/462741771" />
-        <iframe 
-          src="https://player.vimeo.com/video/462741771" 
-          width="640" 
-          height="360" 
-          frameBorder="0" 
-          allow="autoplay; fullscreen" 
-          allowFullScreen
-          style={{ maxWidth: '100%', width: '100%', aspectRatio: '16/9', height: 'auto' }}
-        />
-        <hr style={{ margin: '2rem 0' }} />
-      </div>
-
-      <div style={{ marginTop: '3rem' }}>
-        <h2>Leading Edge // Spring 2020</h2>
-        <CopyableUrl url="https://www.youtube.com/embed/AQivbWFx4yg" />
+        <h2>RTPT // How to Lead in a Crisis with Dr. Sam Chand</h2>
+        <CopyableUrl url="https://www.youtube.com/embed/SEe5UPVddD0" />
         <iframe 
           width="560" 
           height="315" 
-          src="https://www.youtube.com/embed/AQivbWFx4yg" 
+          src="https://www.youtube.com/embed/SEe5UPVddD0" 
           frameBorder="0" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
           allowFullScreen
           style={{ maxWidth: '100%', width: '100%', aspectRatio: '16/9' }}
+        />
+        <hr style={{ margin: '2rem 0' }} />
+      </div>
+
+      <div style={{ marginTop: '3rem' }}>
+        <h2>Gerald Brooks Leadership Podcast // What Paul Said About Leadership</h2>
+        <CopyableUrl url="https://embed.podcasts.apple.com/us/podcast/what-paul-said-about-leadership/id1077436087?i=1000499012702" />
+        <iframe 
+          allow="autoplay *; encrypted-media *; fullscreen *" 
+          frameBorder="0" 
+          height="175" 
+          style={{ width: '100%', maxWidth: '660px', overflow: 'hidden', background: 'transparent' }}
+          sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation" 
+          src="https://embed.podcasts.apple.com/us/podcast/what-paul-said-about-leadership/id1077436087?i=1000499012702"
         />
         <hr style={{ margin: '2rem 0' }} />
       </div>

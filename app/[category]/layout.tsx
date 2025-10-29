@@ -282,7 +282,9 @@ export default function CategoryLayout({
                                       }`}
                                     >
                                       <div className="flex items-center gap-2">
-                                        {getItemIcon(itemType)}
+                                        <div className="flex-shrink-0">
+                                          {getItemIcon(itemType)}
+                                        </div>
                                         <span className="text-sm">{title}</span>
                                       </div>
                                     </button>
