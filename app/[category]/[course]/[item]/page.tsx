@@ -240,12 +240,14 @@ function QuizDisplay({ quizName }: { quizName: string }) {
   );
 }
 
-// VideoPlayer component that prevents seeking/forwarding
-function VideoPlayer({ src }: { src: string }) {
+// VideoPlayer component that prevents seeking/forwarding based on category
+function VideoPlayer({ src, preventFastForward }: { src: string; preventFastForward: boolean }) {
   const [currentTime, setCurrentTime] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const handleTimeUpdate = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    if (!preventFastForward) return; // Allow seeking if not prevented
+    
     const video = e.currentTarget;
     setCurrentTime(video.currentTime);
     
@@ -342,6 +344,34 @@ export default function ItemDetailPage() {
 
   // Render based on item type
   const renderItem = () => {
+    const toYoutubeEmbedUrl = (url: string) => {
+      try {
+        // Handle various YouTube URL formats
+        const urlObj = new URL(url);
+        
+        // youtube.com/watch?v=VIDEO_ID format
+        if (url.includes('youtube.com/watch')) {
+          const videoId = urlObj.searchParams.get('v');
+          return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+        }
+        
+        // youtu.be/VIDEO_ID format
+        if (url.includes('youtu.be/')) {
+          const videoId = urlObj.pathname.split('/')[1];
+          return videoId ? `https://www.youtube.com/embed/${videoId}` : url;
+        }
+        
+        // youtube.com/embed/VIDEO_ID (already an embed URL)
+        if (url.includes('youtube.com/embed')) {
+          return url;
+        }
+        
+        return url;
+      } catch {
+        return url;
+      }
+    };
+
     const toDropboxRawUrl = (inputUrl: string) => {
       try {
         const url = new URL(inputUrl);
@@ -400,12 +430,32 @@ export default function ItemDetailPage() {
             {item.video_url && (
               <div className="mt-6">
                 {
-                  // Prefer native video for Dropbox links to enable autoplay
+                  // Check if it's a Vimeo URL
+                  item.video_url.includes('vimeo.com') ? (
+                    <iframe
+                      src={item.video_url.replace(/vimeo\.com\/(\d+)\/?(.*)/, 'player.vimeo.com/video/$1?h=$2')}
+                      className="w-full aspect-video rounded-lg border border-zinc-200 dark:border-zinc-800"
+                      allow="autoplay; fullscreen; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) : 
+                  // Check if it's a YouTube URL
+                  (item.video_url.includes('youtube.com') || item.video_url.includes('youtu.be')) ? (
+                    <iframe
+                      src={toYoutubeEmbedUrl(item.video_url)}
+                      className="w-full aspect-video rounded-lg border border-zinc-200 dark:border-zinc-800"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  ) :
+                  // Check if it's a Dropbox link
                   item.video_url.includes('dropbox.com') ? (
                     <VideoPlayer
                       src={toDropboxRawUrl(item.video_url)}
+                      preventFastForward={course?.category === 'Leadership Pipeline'}
                     />
                   ) : (
+                    // Assume it's any other video URL
                     <iframe
                       src={item.video_url}
                       className="w-full aspect-video rounded-lg border border-zinc-200 dark:border-zinc-800"
