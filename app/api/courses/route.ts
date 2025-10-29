@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
@@ -40,15 +42,22 @@ export async function GET(request: Request) {
     if (courseError) {
       return NextResponse.json(
         { error: courseError.message },
-        { status: 500 }
+        { status: 500,
+          headers: { 'Cache-Control': 'no-store' }
+        }
       );
     }
 
-    return NextResponse.json({ data: courses || [], categoryName: categoryRow.category });
+    return NextResponse.json(
+      { data: courses || [], categoryName: categoryRow.category },
+      { headers: { 'Cache-Control': 'no-store' } }
+    );
   } catch (error) {
     return NextResponse.json(
       { error: 'An error occurred' },
-      { status: 500 }
+      { status: 500,
+        headers: { 'Cache-Control': 'no-store' }
+      }
     );
   }
 }

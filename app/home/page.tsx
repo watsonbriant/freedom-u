@@ -14,6 +14,8 @@ interface Category {
     documents: number;
     texts: number;
     quizzes: number;
+    podcasts: number;
+    externalLinks: number;
   };
 }
 
@@ -148,6 +150,16 @@ export default function HomePage() {
                         {category.counts.quizzes > 0 && (
                           <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded">
                             {category.counts.quizzes} {category.counts.quizzes === 1 ? 'quiz' : 'quizzes'}
+                          </span>
+                        )}
+                        {category.counts.podcasts > 0 && (
+                          <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded">
+                            {category.counts.podcasts} {category.counts.podcasts === 1 ? 'podcast' : 'podcasts'}
+                          </span>
+                        )}
+                        {category.counts.externalLinks > 0 && (
+                          <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded">
+                            {category.counts.externalLinks} {category.counts.externalLinks === 1 ? 'external link' : 'external links'}
                           </span>
                         )}
                       </div>

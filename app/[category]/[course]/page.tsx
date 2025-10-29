@@ -26,24 +26,24 @@ export default function CourseDetailPage() {
   const courseUuid = params.course as string;
 
   useEffect(() => {
-    // Get cached courses data
-    const cacheKey = `courses_${categoryUuid}`;
-    let cached = null;
-    if (typeof sessionStorage !== 'undefined') {
-      cached = sessionStorage.getItem(cacheKey);
-    }
-    
-    if (cached) {
-      try {
-        const cachedData = JSON.parse(cached);
-        const courses: Course[] = cachedData.courses;
-        const course = courses.find((c: Course) => c.uuid === courseUuid);
-        if (course) {
-          setSelectedCourse(course);
-        }
-      } catch (error) {
-        console.error('Error parsing cached data:', error);
-      }
+    // Fetch course info from API
+    if (categoryUuid && courseUuid) {
+      fetch(`/api/courses?category_uuid=${encodeURIComponent(categoryUuid)}`, {
+        cache: 'no-store'
+      })
+        .then((res) => res.json())
+        .then((result) => {
+          if (result.data) {
+            const courses: Course[] = result.data;
+            const course = courses.find((c: Course) => c.uuid === courseUuid);
+            if (course) {
+              setSelectedCourse(course);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching course data:', error);
+        });
     }
   }, [categoryUuid, courseUuid]);
 

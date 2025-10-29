@@ -37,7 +37,7 @@ export async function GET() {
     const courseNames = courses?.map(c => c.course_name) || [];
     const { data: items, error: itemError } = await supabase
       .from('items')
-      .select('course, item_type, video_url, video_title, document_url, document_title, text_content, text_title, quiz')
+      .select('course, item_type, video_url, video_title, document_url, document_title, text_content, text_title, quiz, podcast_url, podcast_title, link_url, link_title')
       .in('course', courseNames);
 
     if (itemError) {
@@ -60,6 +60,8 @@ export async function GET() {
         documents: categoryItems.filter(item => item.document_url || item.document_title).length,
         texts: categoryItems.filter(item => item.text_content || item.text_title).length,
         quizzes: categoryItems.filter(item => item.quiz).length,
+        podcasts: categoryItems.filter(item => item.podcast_url || item.podcast_title).length,
+        externalLinks: categoryItems.filter(item => item.link_url || item.link_title).length,
       };
 
       return {

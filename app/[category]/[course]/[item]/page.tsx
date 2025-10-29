@@ -286,24 +286,24 @@ export default function ItemDetailPage() {
   const itemUuid = params.item as string;
 
   useEffect(() => {
-    // Get cached courses data
-    const cacheKey = `courses_${categoryUuid}`;
-    let cached = null;
-    if (typeof sessionStorage !== 'undefined') {
-      cached = sessionStorage.getItem(cacheKey);
-    }
-    
-    if (cached) {
-      try {
-        const cachedData = JSON.parse(cached);
-        const courses: Course[] = cachedData.courses;
-        const foundCourse = courses.find((c: Course) => c.uuid === courseUuid);
-        if (foundCourse) {
-          setCourse(foundCourse);
-        }
-      } catch (error) {
-        console.error('Error parsing cached data:', error);
-      }
+    // Fetch course info from API
+    if (categoryUuid && courseUuid) {
+      fetch(`/api/courses?category_uuid=${encodeURIComponent(categoryUuid)}`, {
+        cache: 'no-store'
+      })
+        .then((res) => res.json())
+        .then((result) => {
+          if (result.data) {
+            const courses: Course[] = result.data;
+            const foundCourse = courses.find((c: Course) => c.uuid === courseUuid);
+            if (foundCourse) {
+              setCourse(foundCourse);
+            }
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching course data:', error);
+        });
     }
   }, [categoryUuid, courseUuid]);
 

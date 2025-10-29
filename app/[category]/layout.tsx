@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import Image from "next/image";
 import { File, Video, TextAlignStart, GraduationCap, FileVideoCamera, Link as LinkIcon, Headphones } from 'lucide-react';
@@ -43,6 +43,8 @@ export default function CategoryLayout({
   const router = useRouter();
   const pathname = usePathname();
   const categoryUuid = params.category as string;
+  const lastFetchedCategoryRef = useRef<string | null>(null);
+  const previousPathnameRef = useRef<string>('');
 
   // Check auth on mount
   useEffect(() => {
@@ -60,38 +62,29 @@ export default function CategoryLayout({
   }, [router]);
 
   // Fetch courses and category name
+  // Only fetch fresh when entering a category or returning to the base category page
   useEffect(() => {
     if (!isLoading) {
-      const cacheKey = `courses_${categoryUuid}`;
+      const isBaseCategoryPage = pathname === `/${categoryUuid}`;
+      const categoryChanged = lastFetchedCategoryRef.current !== categoryUuid;
+      const returnedToBasePage = isBaseCategoryPage && previousPathnameRef.current !== pathname && previousPathnameRef.current !== '';
       
-      // Check if sessionStorage is available and if we have cached data
-      let cached = null;
-      if (typeof sessionStorage !== 'undefined') {
-        cached = sessionStorage.getItem(cacheKey);
-      }
+      // Fetch fresh when:
+      // 1. Category changes (different category)
+      // 2. Returning to base category page from a course/item
+      // 3. On base category page initially (no courses loaded yet)
+      const shouldFetchFresh = categoryChanged || returnedToBasePage || (isBaseCategoryPage && courses.length === 0);
       
-      if (cached) {
-        try {
-          const cachedData = JSON.parse(cached);
-          setCourses(cachedData.courses);
-          setCategoryName(cachedData.categoryName);
-        } catch (error) {
-          console.error('Error parsing cached data:', error);
-        }
-      } else {
-        // Fetch courses for this category via uuid
-        fetch(`/api/courses?category_uuid=${encodeURIComponent(categoryUuid)}`)
+      if (shouldFetchFresh) {
+        // Always fetch fresh courses from the database
+        fetch(`/api/courses?category_uuid=${encodeURIComponent(categoryUuid)}`, {
+          cache: 'no-store'
+        })
           .then((res) => res.json())
           .then((result) => {
             if (result.data) {
               setCourses(result.data);
-              // Cache the results
-              if (typeof sessionStorage !== 'undefined') {
-                sessionStorage.setItem(cacheKey, JSON.stringify({
-                  courses: result.data,
-                  categoryName: result.categoryName
-                }));
-              }
+              lastFetchedCategoryRef.current = categoryUuid;
             }
             if (result.categoryName) {
               setCategoryName(result.categoryName);
@@ -101,8 +94,11 @@ export default function CategoryLayout({
             console.error('Error fetching courses:', error);
           });
       }
+      
+      // Update previous pathname
+      previousPathnameRef.current = pathname;
     }
-  }, [isLoading, categoryUuid]);
+  }, [isLoading, categoryUuid, pathname, courses.length]);
 
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'POST' });
