@@ -16,6 +16,10 @@ interface Item {
   text_title?: string;
   text_content?: string;
   quiz?: string;
+  link_title?: string;
+  link_url?: string;
+  podcast_title?: string;
+  podcast_url?: string;
   item_order?: number;
 }
 
@@ -613,6 +617,81 @@ export default function ItemDetailPage() {
             )}
             <QuizDisplay quizName={item.quiz || ''} />
           </>
+        );
+
+      case 'link':
+        return (
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-black dark:text-zinc-50 mb-4">
+              {item.link_title || 'Link'}
+            </h2>
+            {item.link_url && (
+              <div className="mt-6">
+                <a
+                  href={item.link_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-md hover:opacity-80 transition-opacity font-medium"
+                >
+                  Open Link
+                </a>
+              </div>
+            )}
+          </div>
+        );
+
+      case 'podcast':
+        // Helper to convert Apple Podcasts URL to embed URL
+        const convertToEmbedUrl = (url?: string) => {
+          if (!url) return '';
+          
+          // Remove @ prefix if present
+          let cleanUrl = url.startsWith('@') ? url.slice(1) : url;
+          
+          try {
+            const urlObj = new URL(cleanUrl);
+            
+            // Check if it's already an embed URL
+            if (urlObj.hostname.includes('embed.podcasts.apple.com')) {
+              return cleanUrl;
+            }
+            
+            // Extract path components: /us/podcast/show-name/id123456
+            const pathMatch = urlObj.pathname.match(/\/([^\/]+)\/podcast\/([^\/]+)\/id(\d+)/);
+            if (pathMatch) {
+              const [, country, showSlug, podcastId] = pathMatch;
+              return `https://embed.podcasts.apple.com/${country}/podcast/${showSlug}/id${podcastId}`;
+            }
+            
+            // Fallback: return original URL if pattern doesn't match
+            return cleanUrl;
+          } catch {
+            return cleanUrl;
+          }
+        };
+
+        const embedUrl = item.podcast_url ? convertToEmbedUrl(item.podcast_url) : '';
+
+        return (
+          <div className="p-8">
+            <h2 className="text-2xl font-bold text-black dark:text-zinc-50 mb-4">
+              {item.podcast_title || 'Podcast'}
+            </h2>
+            {embedUrl && (
+              <div className="mt-6">
+                <iframe
+                  allow="autoplay *; encrypted-media *; fullscreen *"
+                  frameBorder="0"
+                  height="460"
+                  style={{ width: '100%', overflow: 'hidden', background: 'transparent' }}
+                  sandbox="allow-forms allow-popups allow-same-origin allow-scripts allow-storage-access-by-user-activation allow-top-navigation-by-user-activation"
+                  src={embedUrl}
+                  className="rounded-lg border border-zinc-200 dark:border-zinc-800"
+                  title={item.podcast_title || 'Podcast Player'}
+                />
+              </div>
+            )}
+          </div>
         );
 
       default:

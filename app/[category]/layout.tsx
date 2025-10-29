@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams, usePathname } from 'next/navigation';
 import Image from "next/image";
-import { File, Video, TextAlignStart, GraduationCap, FileVideoCamera } from 'lucide-react';
+import { File, Video, TextAlignStart, GraduationCap, FileVideoCamera, Link as LinkIcon, Headphones } from 'lucide-react';
 
 interface Course {
   uuid: string;
@@ -23,6 +23,10 @@ interface Item {
   text_title?: string;
   text_content?: string;
   quiz?: string;
+  link_title?: string;
+  link_url?: string;
+  podcast_title?: string;
+  podcast_url?: string;
 }
 
 export default function CategoryLayout({
@@ -149,6 +153,10 @@ export default function CategoryLayout({
         return <FileVideoCamera className="w-4 h-4" />;
       case 'quiz':
         return <GraduationCap className="w-4 h-4" />;
+      case 'link':
+        return <LinkIcon className="w-4 h-4" />;
+      case 'podcast':
+        return <Headphones className="w-4 h-4" />;
       default:
         return null;
     }
@@ -168,6 +176,10 @@ export default function CategoryLayout({
         return item.text_title || 'Text';
       case 'quiz':
         return item.quiz || 'Quiz';
+      case 'link':
+        return item.link_title || 'Link';
+      case 'podcast':
+        return item.podcast_title || 'Podcast';
       default:
         return 'Item';
     }

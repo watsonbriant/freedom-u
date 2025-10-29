@@ -34,7 +34,7 @@ export async function GET(request: Request) {
     // Fetch items for this course
     const { data: items, error: itemError } = await supabase
       .from('items')
-      .select('uuid, item_type, video_title, video_url, video_description, video_duration, document_title, document_url, document_description, text_title, text_content, quiz, item_order')
+      .select('uuid, item_type, video_title, video_url, video_description, video_duration, document_title, document_url, document_description, text_title, text_content, quiz, link_title, link_url, podcast_title, podcast_url, item_order')
       .eq('course', courseRow.course_name)
       .order('item_order', { ascending: true });
 
