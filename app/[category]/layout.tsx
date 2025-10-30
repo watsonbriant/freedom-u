@@ -44,6 +44,7 @@ export default function CategoryLayout({
   const [itemsLoading, setItemsLoading] = useState(false);
   const [email, setEmail] = useState<string>('');
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailNoticeText, setEmailNoticeText] = useState<string>('');
   const [completionStatus, setCompletionStatus] = useState<Record<string, boolean>>({});
   const [allCourseItems, setAllCourseItems] = useState<Record<string, Item[]>>({});
   const params = useParams();
@@ -120,6 +121,14 @@ export default function CategoryLayout({
       previousPathnameRef.current = pathname;
     }
   }, [isLoading, categoryUuid, pathname, courses.length]);
+
+  // Open email modal automatically for Leadership Pipeline if email not set
+  useEffect(() => {
+    if (categoryName === 'Leadership Pipeline' && !email) {
+      setEmailNoticeText('In order to access the Leadership Pipeline course, enter the email associated with your FHConnect account below.');
+      setShowEmailModal(true);
+    }
+  }, [categoryName, email]);
 
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'POST' });
@@ -587,6 +596,7 @@ export default function CategoryLayout({
         onClose={() => setShowEmailModal(false)}
         onSubmit={handleEmailSubmit}
         initialEmail={email}
+        noticeText={emailNoticeText}
       />
     </div>
   );

@@ -8,9 +8,10 @@ interface EmailModalProps {
   onClose: () => void;
   onSubmit: (email: string) => Promise<void>;
   initialEmail?: string;
+  noticeText?: string;
 }
 
-export default function EmailModal({ isOpen, onClose, onSubmit, initialEmail }: EmailModalProps) {
+export default function EmailModal({ isOpen, onClose, onSubmit, initialEmail, noticeText }: EmailModalProps) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -61,7 +62,7 @@ export default function EmailModal({ isOpen, onClose, onSubmit, initialEmail }: 
             </h2>
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-2">
-            Please use the email address associated with your FHConnect account.
+            {noticeText || 'Please use the email address associated with your FHConnect account.'}
           </p>
         </div>
 

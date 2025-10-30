@@ -37,6 +37,8 @@ export default function HomePage() {
   const [categoriesLoading, setCategoriesLoading] = useState(true);
   const [email, setEmail] = useState<string>('');
   const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailNoticeText, setEmailNoticeText] = useState<string>('');
+  const [pendingCategoryRoute, setPendingCategoryRoute] = useState<string>('');
   const [checkingEmail, setCheckingEmail] = useState(true);
   const [lpCompletionStatus, setLpCompletionStatus] = useState<Record<string, boolean>>({});
   const [lpItems, setLpItems] = useState<Item[]>([]);
@@ -178,6 +180,12 @@ export default function HomePage() {
 
     if (response.ok) {
       setEmail(emailValue);
+      if (pendingCategoryRoute) {
+        const route = pendingCategoryRoute;
+        setPendingCategoryRoute('');
+        setShowEmailModal(false);
+        router.push(route);
+      }
     } else {
       throw new Error('Failed to register email');
     }
@@ -254,10 +262,21 @@ export default function HomePage() {
                 const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
                 const allCompleted = totalCount > 0 && completedCount === totalCount;
 
+                const handleCategoryClick = () => {
+                  const destination = `/${category.uuid}`;
+                  if (isLeadershipPipeline && !email) {
+                    setEmailNoticeText('In order to access the Leadership Pipeline course, enter the email associated with your FHConnect account below.');
+                    setPendingCategoryRoute(destination);
+                    setShowEmailModal(true);
+                    return;
+                  }
+                  router.push(destination);
+                };
+
                 return (
                   <button
                     key={category.category}
-                    onClick={() => router.push(`/${category.uuid}`)}
+                    onClick={handleCategoryClick}
                     className={`flex flex-col rounded-lg border transition-all text-left ${
                       isLeadershipPipeline && allCompleted
                         ? 'bg-white dark:bg-zinc-900 border-green-500 dark:border-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-600 dark:hover:border-green-500'
@@ -367,6 +386,7 @@ export default function HomePage() {
         onClose={() => setShowEmailModal(false)}
         onSubmit={handleEmailSubmit}
         initialEmail={email}
+        noticeText={emailNoticeText}
       />
     </div>
   );
