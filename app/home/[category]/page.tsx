@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Image from "next/image";
+import EmailModal from '@/components/EmailModal';
+import EmailPill from '@/components/EmailPill';
 
 interface Course {
   uuid: string;
@@ -17,6 +19,8 @@ export default function CategoryDetailPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
   const [categoryName, setCategoryName] = useState<string>('');
+  const [email, setEmail] = useState<string>('');
+  const [showEmailModal, setShowEmailModal] = useState(false);
   const params = useParams();
   const router = useRouter();
   const categoryUuid = params.category as string;
@@ -35,6 +39,20 @@ export default function CategoryDetailPage() {
         router.push('/login');
       });
   }, [router]);
+
+  useEffect(() => {
+    // Fetch email on mount
+    fetch('/api/get-email')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.email) {
+          setEmail(data.email);
+        }
+      })
+      .catch(() => {
+        // Silent fail - email is optional
+      });
+  }, []);
 
   useEffect(() => {
     if (!isLoading) {
@@ -69,6 +87,26 @@ export default function CategoryDetailPage() {
     router.push('/home');
   };
 
+  const handleEmailSubmit = async (emailValue: string) => {
+    const response = await fetch('/api/register-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: emailValue }),
+    });
+
+    if (response.ok) {
+      setEmail(emailValue);
+    } else {
+      throw new Error('Failed to register email');
+    }
+  };
+
+  const handleEmailChange = () => {
+    setShowEmailModal(true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -99,11 +137,12 @@ export default function CategoryDetailPage() {
             </button>
             <div className="flex items-center gap-4">
               <button
-                onClick={handleLogout}
+                onClick={() => router.push('/home')}
                 className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition-colors"
               >
-                Sign Out
+                Home
               </button>
+              <EmailPill email={email} onEmailChange={handleEmailChange} />
             </div>
           </div>
         </div>
@@ -162,6 +201,13 @@ export default function CategoryDetailPage() {
           </div>
         </div>
       </main>
+
+      <EmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSubmit={handleEmailSubmit}
+        initialEmail={email}
+      />
     </div>
   );
 }

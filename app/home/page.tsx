@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from "next/image";
+import EmailModal from '@/components/EmailModal';
+import EmailPill from '@/components/EmailPill';
 
 interface Category {
   uuid: string;
@@ -19,10 +21,25 @@ interface Category {
   };
 }
 
+interface Item {
+  uuid: string;
+  lp_identifier?: string;
+}
+
+interface Course {
+  uuid: string;
+  category: string;
+}
+
 export default function HomePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [categories, setCategories] = useState<Category[]>([]);
   const [categoriesLoading, setCategoriesLoading] = useState(true);
+  const [email, setEmail] = useState<string>('');
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [checkingEmail, setCheckingEmail] = useState(true);
+  const [lpCompletionStatus, setLpCompletionStatus] = useState<Record<string, boolean>>({});
+  const [lpItems, setLpItems] = useState<Item[]>([]);
   const router = useRouter();
 
   useEffect(() => {
@@ -39,6 +56,24 @@ export default function HomePage() {
         router.push('/login');
       });
   }, [router]);
+
+  useEffect(() => {
+    // Check if user has an email set
+    fetch('/api/get-email')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.email) {
+          setEmail(data.email);
+        } else {
+          // If no email is set, show the email modal
+          setShowEmailModal(true);
+        }
+        setCheckingEmail(false);
+      })
+      .catch(() => {
+        setCheckingEmail(false);
+      });
+  }, []);
 
   useEffect(() => {
     if (!isLoading) {
@@ -58,13 +93,101 @@ export default function HomePage() {
     }
   }, [isLoading]);
 
+  // Function to refresh LP completion status
+  const refreshLpCompletion = () => {
+    if (email) {
+      fetch(`/api/lp/completion?email=${encodeURIComponent(email)}`)
+        .then((res) => res.json())
+        .then((result) => {
+          if (result.data) {
+            setLpCompletionStatus(result.data);
+          }
+        })
+        .catch(() => {
+          // Silent fail
+        });
+    }
+  };
+
+  // Fetch LP completion status and items for Leadership Pipeline category
+  useEffect(() => {
+    if (email) {
+      // Fetch completion status
+      refreshLpCompletion();
+
+      // Find Leadership Pipeline category
+      const lpCategory = categories.find(c => c.category === 'Leadership Pipeline');
+      if (lpCategory) {
+        // Fetch courses for Leadership Pipeline
+        fetch(`/api/courses?category_uuid=${encodeURIComponent(lpCategory.uuid)}`)
+          .then((res) => res.json())
+          .then((result) => {
+            if (result.data && result.data.length > 0) {
+              // Fetch items for all courses
+              return Promise.all(
+                result.data.map((course: Course) =>
+                  fetch(`/api/items?course_uuid=${encodeURIComponent(course.uuid)}`)
+                    .then((res) => res.json())
+                    .then((itemResult) => itemResult.data || [])
+                    .catch(() => [])
+                )
+              );
+            }
+            return [];
+          })
+          .then((allItemsArrays: Item[][]) => {
+            const allItems: Item[] = [];
+            allItemsArrays.forEach(items => {
+              allItems.push(...items);
+            });
+            setLpItems(allItems);
+          })
+          .catch(() => {
+            // Silent fail
+          });
+      }
+    }
+  }, [email, categories]);
+
+  // Listen for completion updates
+  useEffect(() => {
+    const handleCompletionUpdate = () => {
+      refreshLpCompletion();
+    };
+
+    window.addEventListener('lp-completion-updated', handleCompletionUpdate);
+    return () => {
+      window.removeEventListener('lp-completion-updated', handleCompletionUpdate);
+    };
+  }, [email]);
+
   const handleLogout = async () => {
     await fetch('/api/logout', { method: 'POST' });
     router.push('/login');
     router.refresh();
   };
 
-  if (isLoading) {
+  const handleEmailSubmit = async (emailValue: string) => {
+    const response = await fetch('/api/register-email', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email: emailValue }),
+    });
+
+    if (response.ok) {
+      setEmail(emailValue);
+    } else {
+      throw new Error('Failed to register email');
+    }
+  };
+
+  const handleEmailChange = () => {
+    setShowEmailModal(true);
+  };
+
+  if (isLoading || checkingEmail) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
@@ -92,12 +215,15 @@ export default function HomePage() {
                 FreedomU
               </h1>
             </button>
-            <button
-              onClick={handleLogout}
-              className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition-colors"
-            >
-              Sign Out
-            </button>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.push('/home')}
+                className="px-4 py-2 text-sm font-medium text-zinc-600 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition-colors"
+              >
+                Home
+              </button>
+              <EmailPill email={email} onEmailChange={handleEmailChange} />
+            </div>
           </div>
         </div>
       </header>
@@ -115,18 +241,67 @@ export default function HomePage() {
 
           {categories.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {categories.map((category) => (
-                <button
-                  key={category.category}
-                  onClick={() => router.push(`/${category.uuid}`)}
-                  className="flex flex-col bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 hover:shadow-md transition-all text-left"
-                >
-                  {/* Top Area - Title */}
-                  <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
-                    <h3 className="text-xl font-semibold text-black dark:text-zinc-50">
-                      {category.category}
-                    </h3>
-                  </div>
+              {categories.map((category) => {
+                // Calculate LP completion if this is Leadership Pipeline
+                const isLeadershipPipeline = category.category === 'Leadership Pipeline';
+                const lpItemsForCategory = isLeadershipPipeline ? lpItems.filter(item => 
+                  item.lp_identifier && item.lp_identifier.trim() !== ''
+                ) : [];
+                const completedCount = lpItemsForCategory.filter(item =>
+                  item.lp_identifier && lpCompletionStatus[item.lp_identifier] === true
+                ).length;
+                const totalCount = lpItemsForCategory.length;
+                const percentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+                const allCompleted = totalCount > 0 && completedCount === totalCount;
+
+                return (
+                  <button
+                    key={category.category}
+                    onClick={() => router.push(`/${category.uuid}`)}
+                    className={`flex flex-col rounded-lg border transition-all text-left ${
+                      isLeadershipPipeline && allCompleted
+                        ? 'bg-white dark:bg-zinc-900 border-green-500 dark:border-green-600 hover:bg-green-50 dark:hover:bg-green-950/20 hover:border-green-600 dark:hover:border-green-500'
+                        : 'bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700'
+                    } hover:shadow-md`}
+                  >
+                    {/* Top Area - Title */}
+                    <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="text-xl font-semibold text-black dark:text-zinc-50">
+                          {category.category}
+                        </h3>
+                        {isLeadershipPipeline && email && totalCount > 0 && (
+                          <div className="flex items-center gap-2">
+                            {allCompleted ? (
+                              <>
+                                <span className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-green-500 dark:bg-green-600">
+                                  <svg
+                                    className="w-3 h-3 text-white"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M5 13l4 4L19 7"
+                                    />
+                                  </svg>
+                                </span>
+                                <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                                  Course Complete
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                                {completedCount}/{totalCount} ({percentage}%)
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
                   {/* Middle Area - Description */}
                   <div className="px-6 py-4 space-y-3">
@@ -166,7 +341,8 @@ export default function HomePage() {
                     )}
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -185,6 +361,13 @@ export default function HomePage() {
           )}
         </div>
       </main>
+
+      <EmailModal
+        isOpen={showEmailModal}
+        onClose={() => setShowEmailModal(false)}
+        onSubmit={handleEmailSubmit}
+        initialEmail={email}
+      />
     </div>
   );
 }

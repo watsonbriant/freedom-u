@@ -21,6 +21,7 @@ interface Item {
   podcast_title?: string;
   podcast_url?: string;
   item_order?: number;
+  lp_identifier?: string;
 }
 
 interface QuizQuestion {
@@ -40,7 +41,13 @@ interface Course {
 }
 
 // Quiz component that displays questions one at a time
-function QuizDisplay({ quizName }: { quizName: string }) {
+function QuizDisplay({ 
+  quizName, 
+  onCompletionChange 
+}: { 
+  quizName: string;
+  onCompletionChange?: (isComplete: boolean, score: number) => void;
+}) {
   const [questions, setQuestions] = useState<QuizQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
@@ -109,10 +116,19 @@ function QuizDisplay({ quizName }: { quizName: string }) {
     );
   }
 
+  // Calculate completion stats
+  const finalCorrectCount = isComplete ? answerHistory.filter(a => a.isCorrect).length : 0;
+  const percentage = isComplete && questions.length > 0 ? Math.round((finalCorrectCount / questions.length) * 100) : 0;
+  const isPerfectScore = isComplete && percentage === 100;
+
+  // Notify parent of completion state changes
+  useEffect(() => {
+    if (onCompletionChange && questions.length > 0) {
+      onCompletionChange(isPerfectScore, percentage);
+    }
+  }, [isPerfectScore, percentage, onCompletionChange, questions.length]);
+
   if (isComplete) {
-    const correctCount = answerHistory.filter(a => a.isCorrect).length;
-    const percentage = Math.round((correctCount / questions.length) * 100);
-    
     return (
       <div className="p-8">
         <div className="max-w-2xl mx-auto">
@@ -123,7 +139,7 @@ function QuizDisplay({ quizName }: { quizName: string }) {
           <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-6 mb-6">
             <div className="text-center">
               <p className="text-4xl font-bold text-black dark:text-zinc-50 mb-2">
-                {correctCount} / {questions.length}
+                {finalCorrectCount} / {questions.length}
               </p>
               <p className="text-2xl font-semibold text-zinc-600 dark:text-zinc-400">
                 {percentage}%
@@ -245,7 +261,15 @@ function QuizDisplay({ quizName }: { quizName: string }) {
 }
 
 // VideoPlayer component that prevents seeking/forwarding based on category
-function VideoPlayer({ src, preventFastForward }: { src: string; preventFastForward: boolean }) {
+function VideoPlayer({ 
+  src, 
+  preventFastForward,
+  onVideoEnded 
+}: { 
+  src: string; 
+  preventFastForward: boolean;
+  onVideoEnded?: () => void;
+}) {
   const [currentTime, setCurrentTime] = useState(0);
   const videoRef = useRef<HTMLVideoElement>(null);
 
@@ -263,6 +287,12 @@ function VideoPlayer({ src, preventFastForward }: { src: string; preventFastForw
     }
   };
 
+  const handleEnded = () => {
+    if (onVideoEnded) {
+      onVideoEnded();
+    }
+  };
+
   return (
     <video
       ref={videoRef}
@@ -272,6 +302,7 @@ function VideoPlayer({ src, preventFastForward }: { src: string; preventFastForw
       autoPlay
       playsInline
       onTimeUpdate={handleTimeUpdate}
+      onEnded={handleEnded}
     />
   );
 }
@@ -280,10 +311,151 @@ export default function ItemDetailPage() {
   const [item, setItem] = useState<Item | null>(null);
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState<string>('');
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [quizComplete, setQuizComplete] = useState(false);
+  const [isCompleted, setIsCompleted] = useState(false);
+  const [markingComplete, setMarkingComplete] = useState(false);
   const params = useParams();
   const categoryUuid = params.category as string;
   const courseUuid = params.course as string;
   const itemUuid = params.item as string;
+
+  // Fetch email on mount
+  useEffect(() => {
+    fetch('/api/get-email')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.email) {
+          setEmail(data.email);
+        }
+      })
+      .catch(() => {
+        // Silent fail - email is optional
+      });
+  }, []);
+
+  // Check if this is Leadership Pipeline category and item has lp_identifier
+  const isLeadershipPipeline = course?.category === 'Leadership Pipeline';
+  const hasLpIdentifier = item?.lp_identifier && item.lp_identifier.trim() !== '';
+
+  // Fetch completion status when email and item change
+  useEffect(() => {
+    if (email && hasLpIdentifier && isLeadershipPipeline) {
+      fetch(`/api/lp/completion?email=${encodeURIComponent(email)}`)
+        .then((res) => res.json())
+        .then((result) => {
+          if (result.data && item?.lp_identifier) {
+            const completionStatus = result.data[item.lp_identifier];
+            setIsCompleted(completionStatus === true);
+          }
+        })
+        .catch(() => {
+          // Silent fail
+        });
+    } else {
+      setIsCompleted(false);
+    }
+  }, [email, item?.lp_identifier, isLeadershipPipeline]);
+
+  // Reset completion states when item changes
+  useEffect(() => {
+    setVideoEnded(false);
+    setQuizComplete(false);
+  }, [itemUuid]);
+
+  const handleVideoEnded = () => {
+    setVideoEnded(true);
+  };
+
+  const handleQuizCompletionChange = (isComplete: boolean, score: number) => {
+    setQuizComplete(isComplete && score === 100);
+  };
+
+  const handleMarkComplete = async () => {
+    if (!email || !item?.lp_identifier || markingComplete) return;
+
+    setMarkingComplete(true);
+    try {
+      const response = await fetch('/api/lp/mark-complete', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email,
+          lp_identifier: item.lp_identifier,
+        }),
+      });
+
+      if (response.ok) {
+        setIsCompleted(true);
+        // Dispatch custom event to notify layout to refresh completion status
+        window.dispatchEvent(new CustomEvent('lp-completion-updated', { 
+          detail: { email, lp_identifier: item.lp_identifier } 
+        }));
+      } else {
+        const error = await response.json();
+        console.error('Error marking complete:', error);
+        alert('Failed to mark completion. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error marking complete:', error);
+      alert('Failed to mark completion. Please try again.');
+    } finally {
+      setMarkingComplete(false);
+    }
+  };
+
+  // Mark Completion Button Component
+  const MarkCompletionButton = () => {
+    if (!isLeadershipPipeline || !hasLpIdentifier || !email) {
+      return null;
+    }
+
+    const canMarkComplete = (item?.item_type === 'video' && videoEnded) || 
+                           (item?.item_type === 'quiz' && quizComplete);
+    const isDisabled = isCompleted || !canMarkComplete || markingComplete;
+
+    return (
+      <div className="mt-6">
+        <button
+          onClick={handleMarkComplete}
+          disabled={isDisabled}
+          className={`inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-opacity ${
+            isCompleted
+              ? 'bg-green-500 dark:bg-green-600 text-white dark:text-white cursor-not-allowed opacity-75'
+              : isDisabled
+              ? 'bg-zinc-300 dark:bg-zinc-700 text-zinc-500 dark:text-zinc-400 cursor-not-allowed'
+              : 'bg-black dark:bg-white text-white dark:text-black hover:opacity-80'
+          }`}
+        >
+          {isCompleted ? (
+            <>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </svg>
+              Completed
+            </>
+          ) : (
+            <>
+              {markingComplete ? 'Marking...' : 'Mark Completion'}
+            </>
+          )}
+        </button>
+      </div>
+    );
+  };
 
   useEffect(() => {
     // Fetch course info from API
@@ -457,6 +629,7 @@ export default function ItemDetailPage() {
                     <VideoPlayer
                       src={toDropboxRawUrl(item.video_url)}
                       preventFastForward={course?.category === 'Leadership Pipeline'}
+                      onVideoEnded={handleVideoEnded}
                     />
                   ) : (
                     // Assume it's any other video URL
@@ -475,6 +648,7 @@ export default function ItemDetailPage() {
                 Duration: {item.video_duration}
               </p>
             )}
+            <MarkCompletionButton />
           </div>
         );
 
@@ -584,6 +758,7 @@ export default function ItemDetailPage() {
                     <VideoPlayer
                       src={toDropboxRawUrl(item.video_url)}
                       preventFastForward={course?.category === 'Leadership Pipeline'}
+                      onVideoEnded={handleVideoEnded}
                     />
                   ) : (
                     // Assume it's any other video URL
@@ -602,6 +777,7 @@ export default function ItemDetailPage() {
                 Duration: {item.video_duration}
               </p>
             )}
+            <MarkCompletionButton />
           </div>
         );
 
@@ -615,7 +791,13 @@ export default function ItemDetailPage() {
                 </h2>
               </div>
             )}
-            <QuizDisplay quizName={item.quiz || ''} />
+            <QuizDisplay 
+              quizName={item.quiz || ''} 
+              onCompletionChange={handleQuizCompletionChange}
+            />
+            <div className="px-8 pb-8">
+              <MarkCompletionButton />
+            </div>
           </>
         );
 

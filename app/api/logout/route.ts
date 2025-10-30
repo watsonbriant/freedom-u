@@ -7,6 +7,9 @@ export async function POST() {
     
     // Clear the session cookie
     cookieStore.delete('freedomu_session');
+    
+    // Clear the email cookie
+    cookieStore.delete('freedomu_email');
 
     return NextResponse.json({ success: true });
   } catch (error) {
