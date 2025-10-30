@@ -106,6 +106,18 @@ function QuizDisplay({
     setIsComplete(false);
   };
 
+  // Calculate completion stats (must be before any conditional return to keep hooks order stable)
+  const finalCorrectCount = isComplete ? answerHistory.filter(a => a.isCorrect).length : 0;
+  const percentage = isComplete && questions.length > 0 ? Math.round((finalCorrectCount / questions.length) * 100) : 0;
+  const isPerfectScore = isComplete && percentage === 100;
+
+  // Notify parent of completion state changes (always register this hook, guard inside)
+  useEffect(() => {
+    if (onCompletionChange && questions.length > 0) {
+      onCompletionChange(isPerfectScore, percentage);
+    }
+  }, [isPerfectScore, percentage, onCompletionChange, questions.length]);
+
   if (questions.length === 0) {
     return (
       <div className="p-8">
@@ -115,18 +127,6 @@ function QuizDisplay({
       </div>
     );
   }
-
-  // Calculate completion stats
-  const finalCorrectCount = isComplete ? answerHistory.filter(a => a.isCorrect).length : 0;
-  const percentage = isComplete && questions.length > 0 ? Math.round((finalCorrectCount / questions.length) * 100) : 0;
-  const isPerfectScore = isComplete && percentage === 100;
-
-  // Notify parent of completion state changes
-  useEffect(() => {
-    if (onCompletionChange && questions.length > 0) {
-      onCompletionChange(isPerfectScore, percentage);
-    }
-  }, [isPerfectScore, percentage, onCompletionChange, questions.length]);
 
   if (isComplete) {
     return (
