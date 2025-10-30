@@ -246,7 +246,7 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={handleToggle}
-        className="flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-100 dark:bg-zinc-800 text-black dark:text-zinc-50 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
+        className="flex items-center gap-2 px-3 py-2 sm:px-4 rounded-full bg-zinc-100 dark:bg-zinc-800 text-black dark:text-zinc-50 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors text-sm font-medium"
         title={email ? "Click to view email and progress" : "Click to set email"}
       >
         <svg
@@ -262,12 +262,12 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
             d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
           />
         </svg>
-        <span className="max-w-[200px] truncate">{displayEmail}</span>
-        <Menu className="w-4 h-4" />
+        <span className="hidden sm:inline max-w-[200px] truncate">{displayEmail}</span>
+        <Menu className="hidden sm:block w-4 h-4" />
       </button>
 
       {isExpanded && email && (
-        <div className="absolute right-0 top-14 w-[750px] bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-xl z-50 p-6">
+        <div className="absolute right-0 top-14 w-[300px] sm:w-[750px] max-w-[calc(100vw-2rem)] bg-white dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-800 shadow-xl z-50 p-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-black dark:text-zinc-50">Profile Overview</h3>
             <button
@@ -282,9 +282,9 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
             </button>
           </div>
 
-          <div className="flex gap-6">
-            {/* Left section - Email editing */}
-            <div className="flex-[1.5]">
+          <div className="flex flex-col sm:flex-row gap-6">
+            {/* Email editing section */}
+            <div className="sm:flex-[1.5]">
               <label className="block text-sm font-medium text-black dark:text-zinc-50 mb-2">
                 Email Address
               </label>
@@ -330,8 +330,8 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
               </div>
             </div>
 
-            {/* Right section - Leadership Pipeline progress */}
-            <div className="flex-1">
+            {/* Leadership Pipeline progress section */}
+            <div className="sm:flex-1">
               <h4 className="text-sm font-semibold text-black dark:text-zinc-50 mb-3">
                 Leadership Pipeline Progress
               </h4>

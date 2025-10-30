@@ -219,7 +219,7 @@ export default function HomePage() {
                 height={32}
                 className="rounded"
               />
-              <h1 className="text-2xl font-bold text-black dark:text-zinc-50">
+              <h1 className="hidden sm:block text-2xl font-bold text-black dark:text-zinc-50">
                 FreedomU
               </h1>
             </button>
@@ -286,7 +286,7 @@ export default function HomePage() {
                     {/* Top Area - Title */}
                     <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800">
                       <div className="flex items-center justify-between gap-2">
-                        <h3 className="text-xl font-semibold text-black dark:text-zinc-50">
+                        <h3 className="text-lg sm:text-xl font-semibold text-black dark:text-zinc-50">
                           {category.category}
                         </h3>
                         {isLeadershipPipeline && email && totalCount > 0 && (
@@ -308,12 +308,12 @@ export default function HomePage() {
                                     />
                                   </svg>
                                 </span>
-                                <span className="text-sm text-green-600 dark:text-green-400 font-medium">
+                                <span className="hidden sm:block text-sm text-green-600 dark:text-green-400 font-medium">
                                   Course Complete
                                 </span>
                               </>
                             ) : (
-                              <span className="text-sm text-zinc-600 dark:text-zinc-400">
+                              <span className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">
                                 {completedCount}/{totalCount} ({percentage}%)
                               </span>
                             )}
@@ -324,13 +324,13 @@ export default function HomePage() {
 
                   {/* Middle Area - Description */}
                   <div className="px-6 py-4 space-y-3">
-                    <p className="text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-line">
+                    <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 whitespace-pre-line">
                       {category.category_description}
                     </p>
                     
                     {/* Item Counts */}
                     {category.counts && (
-                      <div className="flex flex-wrap gap-2 text-xs text-zinc-600 dark:text-zinc-400">
+                      <div className="flex flex-wrap gap-2 text-[10px] sm:text-xs text-zinc-600 dark:text-zinc-400">
                         {category.counts.videos > 0 && (
                           <span className="px-2 py-1 bg-zinc-100 dark:bg-zinc-800 rounded">
                             {category.counts.videos} {category.counts.videos === 1 ? 'video' : 'videos'}
