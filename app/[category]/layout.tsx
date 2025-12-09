@@ -130,12 +130,6 @@ export default function CategoryLayout({
     }
   }, [categoryName, email]);
 
-  const handleLogout = async () => {
-    await fetch('/api/logout', { method: 'POST' });
-    router.push('/login');
-    router.refresh();
-  };
-
   const handleLogoClick = () => {
     router.push('/home');
   };
@@ -157,6 +151,11 @@ export default function CategoryLayout({
   };
 
   const handleEmailChange = () => {
+    setShowEmailModal(true);
+  };
+
+  const handleLogout = () => {
+    setEmail('');
     setShowEmailModal(true);
   };
 
@@ -341,7 +340,7 @@ export default function CategoryLayout({
               >
                 Home
               </button>
-              <EmailPill email={email} onEmailChange={handleEmailChange} />
+              <EmailPill email={email} onEmailChange={handleEmailChange} onLogout={handleLogout} />
             </div>
           </div>
         </div>

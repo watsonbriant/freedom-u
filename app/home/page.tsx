@@ -163,12 +163,6 @@ export default function HomePage() {
     };
   }, [email]);
 
-  const handleLogout = async () => {
-    await fetch('/api/logout', { method: 'POST' });
-    router.push('/login');
-    router.refresh();
-  };
-
   const handleEmailSubmit = async (emailValue: string) => {
     const response = await fetch('/api/register-email', {
       method: 'POST',
@@ -192,6 +186,11 @@ export default function HomePage() {
   };
 
   const handleEmailChange = () => {
+    setShowEmailModal(true);
+  };
+
+  const handleLogout = () => {
+    setEmail('');
     setShowEmailModal(true);
   };
 
@@ -230,7 +229,7 @@ export default function HomePage() {
               >
                 Home
               </button>
-              <EmailPill email={email} onEmailChange={handleEmailChange} />
+              <EmailPill email={email} onEmailChange={handleEmailChange} onLogout={handleLogout} />
             </div>
           </div>
         </div>

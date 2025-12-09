@@ -107,6 +107,11 @@ export default function CategoryDetailPage() {
     setShowEmailModal(true);
   };
 
+  const handleLogout = () => {
+    setEmail('');
+    setShowEmailModal(true);
+  };
+
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -142,7 +147,7 @@ export default function CategoryDetailPage() {
               >
                 Home
               </button>
-              <EmailPill email={email} onEmailChange={handleEmailChange} />
+              <EmailPill email={email} onEmailChange={handleEmailChange} onLogout={handleLogout} />
             </div>
           </div>
         </div>

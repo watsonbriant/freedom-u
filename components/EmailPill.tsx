@@ -2,11 +2,14 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Menu, X, Check, File, Video, TextAlignStart, GraduationCap, FileVideoCamera, Link as LinkIcon, Headphones } from 'lucide-react';
+import { Menu, X, Check, File, Video, TextAlignStart, GraduationCap, FileVideoCamera, Link as LinkIcon, Headphones, Lock } from 'lucide-react';
+import AdminPasswordModal from '@/components/AdminPasswordModal';
+import AdminPanel from '@/components/AdminPanel';
 
 interface EmailPillProps {
   email: string;
   onEmailChange: () => void;
+  onLogout?: () => void;
 }
 
 interface Item {
@@ -27,7 +30,7 @@ interface Category {
   category: string;
 }
 
-export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
+export default function EmailPill({ email, onEmailChange, onLogout }: EmailPillProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [emailValue, setEmailValue] = useState(email);
@@ -36,6 +39,8 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
   const [completionStatus, setCompletionStatus] = useState<Record<string, boolean>>({});
   const [lpCategoryUuid, setLpCategoryUuid] = useState<string>('');
   const [isSaving, setIsSaving] = useState(false);
+  const [showAdminPasswordModal, setShowAdminPasswordModal] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
 
@@ -209,6 +214,18 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/logout', { method: 'POST' });
+      setIsExpanded(false);
+      if (onLogout) {
+        onLogout();
+      }
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   // Helper function to get item icon
   const getItemIcon = (itemType: string) => {
     switch (itemType) {
@@ -282,7 +299,7 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
             </button>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-6">
+          <div className="flex flex-col sm:flex-row gap-6 relative">
             {/* Email editing section */}
             <div className="sm:flex-[1.5]">
               <label className="block text-sm font-medium text-black dark:text-zinc-50 mb-2">
@@ -303,12 +320,20 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
                 />
                 
                 {!isEditing ? (
-                  <button
-                    onClick={handleUpdateClick}
-                    className="w-full px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors text-sm font-medium"
-                  >
-                    Change Profile
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleUpdateClick}
+                      className="flex-1 px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors text-sm font-medium"
+                    >
+                      Change Profile
+                    </button>
+                    <button
+                      onClick={handleLogout}
+                      className="flex-1 px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors text-sm font-medium"
+                    >
+                      Log Out
+                    </button>
+                  </div>
                 ) : (
                   <div className="flex gap-2">
                     <button
@@ -380,9 +405,44 @@ export default function EmailPill({ email, onEmailChange }: EmailPillProps) {
                 </button>
               )}
             </div>
+
+            {/* Admin Panel Button - Lower Left */}
+            <button
+              onClick={() => setShowAdminPasswordModal(true)}
+              className="absolute bottom-0 left-0 inline-flex items-center gap-0 group-hover:gap-2 p-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-all text-sm font-medium group justify-center group-hover:justify-start overflow-hidden"
+              style={{ 
+                width: '2rem', 
+                height: '2rem',
+                transition: 'width 0.3s ease, height 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.width = '8rem';
+                e.currentTarget.style.height = 'auto';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.width = '2rem';
+                e.currentTarget.style.height = '2rem';
+              }}
+            >
+              <Lock className="w-4 h-4 flex-shrink-0" />
+              <span className="inline-block max-w-0 group-hover:max-w-[100px] overflow-hidden transition-all duration-300 whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:ml-2">
+                Admin Panel
+              </span>
+            </button>
           </div>
         </div>
       )}
+
+      <AdminPasswordModal
+        isOpen={showAdminPasswordModal}
+        onClose={() => setShowAdminPasswordModal(false)}
+        onSuccess={() => setShowAdminPanel(true)}
+      />
+
+      <AdminPanel
+        isOpen={showAdminPanel}
+        onClose={() => setShowAdminPanel(false)}
+      />
     </div>
   );
 }
