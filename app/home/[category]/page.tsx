@@ -107,11 +107,6 @@ export default function CategoryDetailPage() {
     setShowEmailModal(true);
   };
 
-  const handleLogout = () => {
-    setEmail('');
-    setShowEmailModal(true);
-  };
-
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
@@ -216,4 +211,3 @@ export default function CategoryDetailPage() {
     </div>
   );
 }
-
