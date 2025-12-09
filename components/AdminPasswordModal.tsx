@@ -19,7 +19,7 @@ export default function AdminPasswordModal({ isOpen, onClose, onSuccess }: Admin
     setError('');
     setIsLoading(true);
 
-    if (password === 'Freedom2025!@!@') {
+    if (password === 'Freedom2002!@!@') {
       setPassword('');
       onSuccess();
       onClose();
