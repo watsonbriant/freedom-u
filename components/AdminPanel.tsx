@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Check, X as XIcon, ChevronLeft, ChevronRight, Edit2, Save, Plus, GripVertical, Trash2 } from 'lucide-react';
+import { X, Check, X as XIcon, ChevronLeft, ChevronRight, Edit2, Save, Plus, GripVertical, Trash2, CircleEllipsis } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -72,6 +72,37 @@ interface Course {
 interface GroupedCourses {
   category: string;
   courses: Course[];
+}
+
+interface Item {
+  uuid: string;
+  item_type: string;
+  course: string;
+  item_order: number;
+  video_title?: string | null;
+  video_url?: string | null;
+  video_duration?: string | null;
+  video_description?: string | null;
+  document_title?: string | null;
+  document_description?: string | null;
+  document_url?: string | null;
+  link_title?: string | null;
+  link_url?: string | null;
+  podcast_title?: string | null;
+  podcast_url?: string | null;
+  quiz?: string | null;
+  text_title?: string | null;
+  text_content?: string | null;
+}
+
+interface CourseWithItems extends Course {
+  items: Item[];
+}
+
+interface CategoryWithCourses {
+  category: string;
+  category_order: number;
+  courses: CourseWithItems[];
 }
 
 function SortableCourseItem({
@@ -371,6 +402,9 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [newCourseDescription, setNewCourseDescription] = useState('');
   const [newCourseCategory, setNewCourseCategory] = useState('');
   const [courseToDelete, setCourseToDelete] = useState<{ uuid: string; name: string } | null>(null);
+  const [itemsData, setItemsData] = useState<CategoryWithCourses[]>([]);
+  const [itemsLoading, setItemsLoading] = useState(false);
+  const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -428,6 +462,8 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         // Fetch both categories (for dropdown) and courses
         fetchCategories();
         fetchCourses();
+      } else if (selectedContentPill === 'Items') {
+        fetchItems();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -638,6 +674,42 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
   const cancelDeleteCourse = () => {
     setCourseToDelete(null);
+  };
+
+  const fetchItems = async () => {
+    setItemsLoading(true);
+    try {
+      const response = await fetch('/api/admin/items');
+      const result = await response.json();
+      if (result.data) {
+        setItemsData(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching items:', error);
+    } finally {
+      setItemsLoading(false);
+    }
+  };
+
+  const getItemDisplayTitle = (item: Item): string => {
+    switch (item.item_type) {
+      case 'document':
+        return item.document_title || 'Untitled Document';
+      case 'link':
+        return item.link_title || 'Untitled Link';
+      case 'podcast':
+        return item.podcast_title || 'Untitled Podcast';
+      case 'quiz':
+        return item.quiz || 'Untitled Quiz';
+      case 'text':
+        return item.text_title || 'Untitled Text';
+      case 'video':
+        return item.video_title || 'Untitled Video';
+      case 'video_doc':
+        return item.video_title || 'Untitled Video Document';
+      default:
+        return 'Unknown Item';
+    }
   };
 
   const handleCourseDragEnd = async (event: DragEndEvent, category: string) => {
@@ -1238,17 +1310,64 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   </div>
                 )}
 
-                {/* Items Placeholder */}
+                {/* Items Content */}
                 {selectedContentPill === 'Items' && (
-                  <div className="mt-6">
-                    <div className="text-center py-12">
-                      <p className="text-lg text-zinc-600 dark:text-zinc-400">
-                        Items - Placeholder Content
-                      </p>
-                      <p className="text-sm text-zinc-500 dark:text-zinc-500 mt-2">
-                        This is where the items content will be displayed.
-                      </p>
-                    </div>
+                  <div className="mt-6 space-y-6">
+                    <h3 className="text-xl font-semibold text-black dark:text-zinc-50">
+                      Items
+                    </h3>
+
+                    {itemsLoading ? (
+                      <div className="text-center py-12">
+                        <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
+                      </div>
+                    ) : itemsData.length === 0 ? (
+                      <div className="text-center py-12">
+                        <p className="text-zinc-600 dark:text-zinc-400">No items found</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-8">
+                        {itemsData.map((categoryGroup) => (
+                          <div key={categoryGroup.category} className="space-y-4">
+                            <h4 className="text-lg font-semibold text-black dark:text-zinc-50 border-b border-zinc-200 dark:border-zinc-800 pb-2">
+                              {categoryGroup.category}
+                            </h4>
+                            {categoryGroup.courses.map((course) => (
+                              <div key={course.uuid} className="ml-4 space-y-2">
+                                <h5 className="text-md font-medium text-zinc-700 dark:text-zinc-300">
+                                  {course.course_name}
+                                </h5>
+                                {course.items.length === 0 ? (
+                                  <p className="ml-4 text-sm text-zinc-500 dark:text-zinc-500">
+                                    No items in this course
+                                  </p>
+                                ) : (
+                                  <div className="ml-4 space-y-1">
+                                    {course.items.map((item) => (
+                                      <div
+                                        key={item.uuid}
+                                        onClick={() => setSelectedItem(item)}
+                                        className="flex items-center gap-2 p-3 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors cursor-pointer"
+                                      >
+                                        <span className="flex-1 text-sm text-black dark:text-zinc-50">
+                                          {getItemDisplayTitle(item)}
+                                        </span>
+                                        <div
+                                          className="p-1.5 text-zinc-500 dark:text-zinc-400"
+                                          title="View details"
+                                        >
+                                          <CircleEllipsis className="w-4 h-4" />
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1317,6 +1436,246 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 className="flex-1 py-2 px-4 rounded-lg bg-red-600 dark:bg-red-500 text-white font-medium hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
               >
                 Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Item Details Modal */}
+      {selectedItem && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
+          onClick={() => setSelectedItem(null)}
+        >
+          <div 
+            className="bg-white dark:bg-zinc-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 shadow-xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-black dark:text-zinc-50">
+                Item Details
+              </h2>
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Item Type:</span>
+                <p className="text-black dark:text-zinc-50 capitalize">{selectedItem.item_type}</p>
+              </div>
+
+              {selectedItem.item_type === 'document' && (
+                <>
+                  {selectedItem.document_title && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.document_title}</p>
+                    </div>
+                  )}
+                  {selectedItem.document_description && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Description:</span>
+                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.document_description}</p>
+                    </div>
+                  )}
+                  {selectedItem.document_url && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
+                      <a
+                        href={selectedItem.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                      >
+                        {selectedItem.document_url}
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {selectedItem.item_type === 'link' && (
+                <>
+                  {selectedItem.link_title && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.link_title}</p>
+                    </div>
+                  )}
+                  {selectedItem.link_url && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
+                      <a
+                        href={selectedItem.link_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                      >
+                        {selectedItem.link_url}
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {selectedItem.item_type === 'podcast' && (
+                <>
+                  {selectedItem.podcast_title && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.podcast_title}</p>
+                    </div>
+                  )}
+                  {selectedItem.podcast_url && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
+                      <a
+                        href={selectedItem.podcast_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                      >
+                        {selectedItem.podcast_url}
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {selectedItem.item_type === 'quiz' && selectedItem.quiz && (
+                <div>
+                  <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Quiz:</span>
+                  <p className="text-black dark:text-zinc-50">{selectedItem.quiz}</p>
+                </div>
+              )}
+
+              {selectedItem.item_type === 'text' && (
+                <>
+                  {selectedItem.text_title && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.text_title}</p>
+                    </div>
+                  )}
+                  {selectedItem.text_content && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Content:</span>
+                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.text_content}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {selectedItem.item_type === 'video' && (
+                <>
+                  {selectedItem.video_title && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.video_title}</p>
+                    </div>
+                  )}
+                  {selectedItem.video_url && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
+                      <a
+                        href={selectedItem.video_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                      >
+                        {selectedItem.video_url}
+                      </a>
+                    </div>
+                  )}
+                  {selectedItem.video_duration && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Duration:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.video_duration}</p>
+                    </div>
+                  )}
+                  {selectedItem.video_description && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Description:</span>
+                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.video_description}</p>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {selectedItem.item_type === 'video_doc' && (
+                <>
+                  {selectedItem.video_title && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Title:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.video_title}</p>
+                    </div>
+                  )}
+                  {selectedItem.video_url && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video URL:</span><br />
+                      <a
+                        href={selectedItem.video_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                      >
+                        {selectedItem.video_url}
+                      </a>
+                    </div>
+                  )}
+                  {selectedItem.video_duration && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Duration:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.video_duration}</p>
+                    </div>
+                  )}
+                  {selectedItem.video_description && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Description:</span>
+                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.video_description}</p>
+                    </div>
+                  )}
+                  {selectedItem.document_title && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document Title:</span>
+                      <p className="text-black dark:text-zinc-50">{selectedItem.document_title}</p>
+                    </div>
+                  )}
+                  {selectedItem.document_description && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document Description:</span>
+                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.document_description}</p>
+                    </div>
+                  )}
+                  {selectedItem.document_url && (
+                    <div>
+                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document URL:</span><br />
+                      <a
+                        href={selectedItem.document_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                      >
+                        {selectedItem.document_url}
+                      </a>
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              <button
+                onClick={() => setSelectedItem(null)}
+                className="w-full py-2 px-4 rounded-lg border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Close
               </button>
             </div>
           </div>

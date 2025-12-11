@@ -30,6 +30,24 @@ interface Category {
   category: string;
 }
 
+// List of allowed admin emails
+// You can set this via environment variable NEXT_PUBLIC_ADMIN_EMAILS (comma-separated)
+// Or add emails directly in the array below
+const getAllowedAdminEmails = (): string[] => {
+  // Check for environment variable first
+  if (process.env.NEXT_PUBLIC_ADMIN_EMAILS) {
+    return process.env.NEXT_PUBLIC_ADMIN_EMAILS.split(',').map(e => e.trim().toLowerCase());
+  }
+  // Default allowed emails - update this list as needed
+  return [
+    'jmcalister@freedomhouse.cc',
+    'esawdon@freedomhouse.cc',
+    'jharmon@freedomhouse.cc',
+    'watson.briant@gmail.com',
+    'tsteinmann@freedomhouse.cc',
+  ];
+};
+
 export default function EmailPill({ email, onEmailChange, onLogout }: EmailPillProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -45,6 +63,9 @@ export default function EmailPill({ email, onEmailChange, onLogout }: EmailPillP
   const router = useRouter();
 
   const displayEmail = email || 'No email set';
+  
+  // Check if current email is allowed to access admin panel
+  const isAdminEmail = email ? getAllowedAdminEmails().includes(email.toLowerCase()) : false;
 
   // Update email value when prop changes
   useEffect(() => {
@@ -406,29 +427,31 @@ export default function EmailPill({ email, onEmailChange, onLogout }: EmailPillP
               )}
             </div>
 
-            {/* Admin Panel Button - Lower Left */}
-            <button
-              onClick={() => setShowAdminPasswordModal(true)}
-              className="absolute bottom-0 left-0 inline-flex items-center gap-0 group-hover:gap-2 p-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-all text-sm font-medium group justify-center group-hover:justify-start overflow-hidden"
-              style={{ 
-                width: '2rem', 
-                height: '2rem',
-                transition: 'width 0.3s ease, height 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.width = '8rem';
-                e.currentTarget.style.height = 'auto';
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.width = '2rem';
-                e.currentTarget.style.height = '2rem';
-              }}
-            >
-              <Lock className="w-4 h-4 flex-shrink-0" />
-              <span className="inline-block max-w-0 group-hover:max-w-[100px] overflow-hidden transition-all duration-300 whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:ml-2">
-                Admin Panel
-              </span>
-            </button>
+            {/* Admin Panel Button - Lower Left - Only show for allowed emails */}
+            {isAdminEmail && (
+              <button
+                onClick={() => setShowAdminPasswordModal(true)}
+                className="absolute bottom-0 left-0 inline-flex items-center gap-0 group-hover:gap-2 p-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-all text-sm font-medium group justify-center group-hover:justify-start overflow-hidden"
+                style={{ 
+                  width: '2rem', 
+                  height: '2rem',
+                  transition: 'width 0.3s ease, height 0.3s ease',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.width = '8rem';
+                  e.currentTarget.style.height = 'auto';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.width = '2rem';
+                  e.currentTarget.style.height = '2rem';
+                }}
+              >
+                <Lock className="w-4 h-4 flex-shrink-0" />
+                <span className="inline-block max-w-0 group-hover:max-w-[100px] overflow-hidden transition-all duration-300 whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:ml-2">
+                  Admin Panel
+                </span>
+              </button>
+            )}
           </div>
         </div>
       )}
