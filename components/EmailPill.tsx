@@ -320,7 +320,7 @@ export default function EmailPill({ email, onEmailChange, onLogout }: EmailPillP
             </button>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-6 relative">
+          <div className="flex flex-col sm:flex-row gap-6">
             {/* Email editing section */}
             <div className="sm:flex-[1.5]">
               <label className="block text-sm font-medium text-black dark:text-zinc-50 mb-2">
@@ -341,19 +341,31 @@ export default function EmailPill({ email, onEmailChange, onLogout }: EmailPillP
                 />
                 
                 {!isEditing ? (
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleUpdateClick}
-                      className="flex-1 px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors text-sm font-medium"
-                    >
-                      Change Profile
-                    </button>
-                    <button
-                      onClick={handleLogout}
-                      className="flex-1 px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors text-sm font-medium"
-                    >
-                      Log Out
-                    </button>
+                  <div className="space-y-2">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={handleUpdateClick}
+                        className="flex-1 px-2 sm:px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors text-sm font-medium"
+                      >
+                        Change Profile
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="flex-1 px-2 sm:px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors text-sm font-medium"
+                      >
+                        Log Out
+                      </button>
+                    </div>
+                    {/* Admin Panel Button - Only show for allowed emails, hidden on mobile */}
+                    {isAdminEmail && (
+                      <button
+                        onClick={() => setShowAdminPasswordModal(true)}
+                        className="hidden sm:flex w-full px-4 py-2 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-colors text-sm font-medium items-center justify-center gap-2"
+                      >
+                        <Lock className="w-4 h-4" />
+                        Admin Panel
+                      </button>
+                    )}
                   </div>
                 ) : (
                   <div className="flex gap-2">
@@ -426,32 +438,6 @@ export default function EmailPill({ email, onEmailChange, onLogout }: EmailPillP
                 </button>
               )}
             </div>
-
-            {/* Admin Panel Button - Lower Left - Only show for allowed emails */}
-            {isAdminEmail && (
-              <button
-                onClick={() => setShowAdminPasswordModal(true)}
-                className="absolute bottom-0 left-0 inline-flex items-center gap-0 group-hover:gap-2 p-1.5 rounded-lg bg-zinc-200 dark:bg-zinc-700 text-black dark:text-zinc-50 hover:bg-zinc-300 dark:hover:bg-zinc-600 transition-all text-sm font-medium group justify-center group-hover:justify-start overflow-hidden"
-                style={{ 
-                  width: '2rem', 
-                  height: '2rem',
-                  transition: 'width 0.3s ease, height 0.3s ease',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.width = '8rem';
-                  e.currentTarget.style.height = 'auto';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.width = '2rem';
-                  e.currentTarget.style.height = '2rem';
-                }}
-              >
-                <Lock className="w-4 h-4 flex-shrink-0" />
-                <span className="inline-block max-w-0 group-hover:max-w-[100px] overflow-hidden transition-all duration-300 whitespace-nowrap opacity-0 group-hover:opacity-100 group-hover:ml-2">
-                  Admin Panel
-                </span>
-              </button>
-            )}
           </div>
         </div>
       )}
