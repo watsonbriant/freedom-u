@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { checkAdminAuth } from '@/lib/admin';
 
 export async function GET() {
   try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { data, error } = await supabase
       .from('categories')
       .select('uuid, category, category_description, category_order')
@@ -28,6 +37,14 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { category, category_description } = body;
 
@@ -78,6 +95,14 @@ export async function POST(request: NextRequest) {
 
 export async function PUT(request: NextRequest) {
   try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { uuid, category, category_description } = body;
 
@@ -118,6 +143,14 @@ export async function PUT(request: NextRequest) {
 
 export async function PATCH(request: NextRequest) {
   try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const body = await request.json();
     const { categories } = body; // Array of { uuid, category_order }
 
@@ -159,6 +192,14 @@ export async function PATCH(request: NextRequest) {
 
 export async function DELETE(request: NextRequest) {
   try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(request.url);
     const uuid = searchParams.get('uuid');
 

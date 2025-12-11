@@ -72,13 +72,23 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 30); // 30 days from now
 
-    cookieStore.set('freedomu_email', email.toLowerCase().trim(), {
+    // Get current email to check if it's changing
+    const currentEmailCookie = cookieStore.get('freedomu_email');
+    const currentEmail = currentEmailCookie?.value;
+    const newEmail = email.toLowerCase().trim();
+
+    cookieStore.set('freedomu_email', newEmail, {
       httpOnly: false, // Set to false so client can read it for the pill
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       expires: expiresAt,
       path: '/',
     });
+
+    // Clear admin session cookie if email is changing (to force re-authentication with new email)
+    if (currentEmail && currentEmail !== newEmail) {
+      cookieStore.delete('freedomu_admin_session');
+    }
 
     return NextResponse.json({ success: true });
   } catch (error) {

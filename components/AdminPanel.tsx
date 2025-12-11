@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { X, Check, X as XIcon, ChevronLeft, ChevronRight, Edit2, Save, Plus, GripVertical, Trash2, CircleEllipsis } from 'lucide-react';
+import { X, Check, X as XIcon, ChevronLeft, ChevronRight, Edit2, Save, Plus, GripVertical, Trash2, CircleEllipsis, ArrowLeft } from 'lucide-react';
 import {
   DndContext,
   closestCenter,
@@ -246,6 +246,58 @@ function SortableCourseItem({
   );
 }
 
+function SortableItemItem({
+  item,
+  getItemDisplayTitle,
+  onItemClick,
+}: {
+  item: Item;
+  getItemDisplayTitle: (item: Item) => string;
+  onItemClick: (item: Item) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: item.uuid });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="flex items-center gap-2 p-3 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors cursor-pointer"
+      onClick={() => onItemClick(item)}
+    >
+      <div
+        {...attributes}
+        {...listeners}
+        className="cursor-grab active:cursor-grabbing text-zinc-400 dark:text-zinc-600 hover:text-zinc-600 dark:hover:text-zinc-400"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <GripVertical className="w-4 h-4" />
+      </div>
+      <span className="flex-1 text-sm text-black dark:text-zinc-50">
+        {getItemDisplayTitle(item)}
+      </span>
+      <div
+        className="p-1.5 text-zinc-500 dark:text-zinc-400"
+        title="View details"
+      >
+        <CircleEllipsis className="w-4 h-4" />
+      </div>
+    </div>
+  );
+}
+
 function SortableCategoryItem({
   category,
   isEditing,
@@ -369,6 +421,180 @@ function SortableCategoryItem({
   );
 }
 
+function SortableQuestionItem({
+  question,
+  isEditing,
+  editedQuestion,
+  onEdit,
+  onCancel,
+  onSave,
+  onDelete,
+  onQuestionChange,
+  onOptionChange,
+  onCorrectAnswerChange,
+}: {
+  question: {
+    id: string;
+    question: string;
+    options: string[];
+    correct_answer: number;
+    quiz_order: number;
+  };
+  isEditing: boolean;
+  editedQuestion: {
+    id: string;
+    question: string;
+    options: string[];
+    correct_answer: number;
+  } | null;
+  onEdit: () => void;
+  onCancel: () => void;
+  onSave: () => void;
+  onDelete: () => void;
+  onQuestionChange: (value: string) => void;
+  onOptionChange: (index: number, value: string) => void;
+  onCorrectAnswerChange: (index: number) => void;
+}) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: question.id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className="p-4 border-2 border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900"
+    >
+      <div className="flex items-start gap-3 mb-4">
+        <div className="flex flex-col items-center gap-2">
+          <div
+            {...attributes}
+            {...listeners}
+            className="cursor-grab active:cursor-grabbing p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+          >
+            <GripVertical className="w-5 h-5" />
+          </div>
+          {!isEditing && (
+            <>
+              <button
+                onClick={onEdit}
+                className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <Edit2 className="w-5 h-5" />
+              </button>
+              <button
+                onClick={onDelete}
+                className="p-2 text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            </>
+          )}
+        </div>
+        <div className="flex-1">
+          {isEditing && editedQuestion ? (
+            <>
+              <div className="mb-4">
+                <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">
+                  Question {question.quiz_order}:
+                </label>
+                <textarea
+                  value={editedQuestion.question}
+                  onChange={(e) => onQuestionChange(e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2 mb-4">
+                {editedQuestion.options.map((option, index) => (
+                  <div key={index} className="flex items-center gap-3">
+                    <input
+                      type="radio"
+                      checked={editedQuestion.correct_answer === index}
+                      onChange={() => onCorrectAnswerChange(index)}
+                      className="w-4 h-4 text-green-600 dark:text-green-400"
+                    />
+                    <input
+                      type="text"
+                      value={option}
+                      onChange={(e) => onOptionChange(index, e.target.value)}
+                      className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                      placeholder={`Option ${index + 1}`}
+                    />
+                    {editedQuestion.correct_answer === index && (
+                      <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Correct)</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onSave}
+                  className="px-4 py-2 bg-black dark:bg-zinc-50 text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-sm font-medium"
+                >
+                  Save
+                </button>
+                <button
+                  onClick={onCancel}
+                  className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-sm font-medium"
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h4 className="text-lg font-semibold text-black dark:text-zinc-50 mb-4">
+                Question {question.quiz_order} — {question.question}
+              </h4>
+              <div className="space-y-2">
+                {question.options.map((option, index) => (
+                  <div
+                    key={index}
+                    className={`flex items-center gap-3 p-3 rounded-lg border ${
+                      question.correct_answer === index
+                        ? 'border-green-500 dark:border-green-400 bg-green-50 dark:bg-green-950'
+                        : 'border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      checked={question.correct_answer === index}
+                      readOnly
+                      className="w-4 h-4 text-green-600 dark:text-green-400 cursor-default"
+                    />
+                    <span className={`flex-1 ${
+                      question.correct_answer === index
+                        ? 'text-green-700 dark:text-green-300 font-medium'
+                        : 'text-black dark:text-zinc-50'
+                    }`}>
+                      {option}
+                      {question.correct_answer === index && (
+                        <span className="ml-2 text-xs text-green-600 dark:text-green-400">(Correct Answer)</span>
+                      )}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [selectedNavItem, setSelectedNavItem] = useState('Users');
   const [selectedContentPill, setSelectedContentPill] = useState('Categories');
@@ -405,6 +631,42 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const [itemsData, setItemsData] = useState<CategoryWithCourses[]>([]);
   const [itemsLoading, setItemsLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
+  const [isEditingItem, setIsEditingItem] = useState(false);
+  const [editedItem, setEditedItem] = useState<Partial<Item>>({});
+  const [itemToDelete, setItemToDelete] = useState<{ uuid: string; name: string } | null>(null);
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItemCourse, setNewItemCourse] = useState('');
+  const [newItemType, setNewItemType] = useState('');
+  const [newItemFields, setNewItemFields] = useState<Record<string, string>>({});
+  const [itemTypes, setItemTypes] = useState<{ item_type: string }[]>([]);
+  const [quizzes, setQuizzes] = useState<Array<{ uuid: string; quiz_name: string }>>([]);
+  const [quizzesLoading, setQuizzesLoading] = useState(false);
+  const [selectedQuiz, setSelectedQuiz] = useState<string>('');
+  const [quizQuestions, setQuizQuestions] = useState<Array<{
+    id: string;
+    question: string;
+    options: string[];
+    correct_answer: number;
+    quiz_order: number;
+  }>>([]);
+  const [quizQuestionsLoading, setQuizQuestionsLoading] = useState(false);
+  const [showAddQuiz, setShowAddQuiz] = useState(false);
+  const [newQuizName, setNewQuizName] = useState('');
+  const [editingQuiz, setEditingQuiz] = useState<string | null>(null);
+  const [editQuizName, setEditQuizName] = useState('');
+  const [editingQuestion, setEditingQuestion] = useState<string | null>(null);
+  const [editedQuestion, setEditedQuestion] = useState<{
+    id: string;
+    question: string;
+    options: string[];
+    correct_answer: number;
+  } | null>(null);
+  const [showAddQuestion, setShowAddQuestion] = useState(false);
+  const [newQuestionText, setNewQuestionText] = useState('');
+  const [newQuestionOptions, setNewQuestionOptions] = useState<string[]>(['', '']);
+  const [newQuestionCorrectAnswer, setNewQuestionCorrectAnswer] = useState<number>(0);
+  const [questionToDelete, setQuestionToDelete] = useState<{ id: string; question: string } | null>(null);
+  const [quizToDelete, setQuizToDelete] = useState<{ uuid: string; name: string } | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -450,6 +712,10 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     } else if (isOpen && selectedNavItem === 'Content') {
       // Reset content pill to Categories when switching to Content
       setSelectedContentPill('Categories');
+    } else if (isOpen && selectedNavItem === 'Quizzes') {
+      fetchQuizzes();
+      setSelectedQuiz('');
+      setQuizQuestions([]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, selectedNavItem]);
@@ -464,6 +730,10 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         fetchCourses();
       } else if (selectedContentPill === 'Items') {
         fetchItems();
+        fetchItemTypes();
+        fetchQuizzes();
+        fetchCategories();
+        fetchCourses();
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -691,6 +961,245 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
     }
   };
 
+  const fetchItemTypes = async () => {
+    try {
+      const response = await fetch('/api/admin/item-types');
+      const result = await response.json();
+      if (result.data) {
+        setItemTypes(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching item types:', error);
+    }
+  };
+
+  const fetchQuizzes = async () => {
+    setQuizzesLoading(true);
+    try {
+      const response = await fetch('/api/admin/quizzes');
+      const result = await response.json();
+      if (result.data) {
+        setQuizzes(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching quizzes:', error);
+    } finally {
+      setQuizzesLoading(false);
+    }
+  };
+
+  const handleEditQuiz = (quiz: { uuid: string; quiz_name: string }) => {
+    setEditingQuiz(quiz.uuid);
+    setEditQuizName(quiz.quiz_name);
+  };
+
+  const handleSaveQuiz = async (uuid: string) => {
+    try {
+      const oldQuiz = quizzes.find(q => q.uuid === uuid);
+      const response = await fetch('/api/admin/quizzes', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          uuid,
+          quiz_name: editQuizName,
+        }),
+      });
+      const result = await response.json();
+      if (result.data) {
+        await fetchQuizzes();
+        setEditingQuiz(null);
+        // If we were viewing this quiz's questions, update the selected quiz name and refetch questions
+        if (selectedQuiz && oldQuiz && oldQuiz.quiz_name === selectedQuiz) {
+          setSelectedQuiz(editQuizName);
+          // Refetch questions with the new quiz name
+          await fetchQuizQuestions(editQuizName);
+        }
+      }
+    } catch (error) {
+      console.error('Error updating quiz:', error);
+    }
+  };
+
+  const handleCancelEditQuiz = () => {
+    setEditingQuiz(null);
+    setEditQuizName('');
+  };
+
+  const handleDeleteQuiz = (quiz: { uuid: string; quiz_name: string }) => {
+    setQuizToDelete({ uuid: quiz.uuid, name: quiz.quiz_name });
+  };
+
+  const confirmDeleteQuiz = async () => {
+    if (!quizToDelete) return;
+
+    try {
+      const response = await fetch(`/api/admin/quizzes?uuid=${quizToDelete.uuid}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      if (result.success) {
+        await fetchQuizzes();
+        // If we were viewing this quiz's questions, clear the selection
+        if (selectedQuiz === quizToDelete.name) {
+          setSelectedQuiz('');
+          setQuizQuestions([]);
+        }
+        // If we were editing this quiz, cancel the edit
+        const currentQuiz = quizzes.find(q => q.uuid === quizToDelete.uuid);
+        if (currentQuiz && editingQuiz === quizToDelete.uuid) {
+          handleCancelEditQuiz();
+        }
+        setQuizToDelete(null);
+      }
+    } catch (error) {
+      console.error('Error deleting quiz:', error);
+    }
+  };
+
+  const cancelDeleteQuiz = () => {
+    setQuizToDelete(null);
+  };
+
+  const handleSaveQuestion = async () => {
+    if (!editedQuestion) return;
+
+    try {
+      const response = await fetch('/api/admin/quiz-questions', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editedQuestion),
+      });
+      const result = await response.json();
+      if (result.data) {
+        await fetchQuizQuestions(selectedQuiz);
+        setEditingQuestion(null);
+        setEditedQuestion(null);
+      }
+    } catch (error) {
+      console.error('Error updating question:', error);
+    }
+  };
+
+  const handleAddQuestion = async () => {
+    if (!selectedQuiz || !newQuestionText.trim()) return;
+    
+    const validOptions = newQuestionOptions.filter(o => o.trim());
+    if (validOptions.length < 2) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/admin/quiz-questions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          quiz_name: selectedQuiz,
+          question: newQuestionText.trim(),
+          options: validOptions,
+          correct_answer: newQuestionCorrectAnswer,
+        }),
+      });
+      const result = await response.json();
+      if (result.data) {
+        await fetchQuizQuestions(selectedQuiz);
+        setShowAddQuestion(false);
+        setNewQuestionText('');
+        setNewQuestionOptions(['', '']);
+        setNewQuestionCorrectAnswer(0);
+      }
+    } catch (error) {
+      console.error('Error creating question:', error);
+    }
+  };
+
+  const handleDeleteQuestion = (question: { id: string; question: string }) => {
+    setQuestionToDelete({ id: question.id, question: question.question });
+  };
+
+  const confirmDeleteQuestion = async () => {
+    if (!questionToDelete) return;
+
+    try {
+      const response = await fetch(`/api/admin/quiz-questions?id=${questionToDelete.id}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      if (result.success) {
+        await fetchQuizQuestions(selectedQuiz);
+        // If we were editing this question, cancel the edit
+        if (editingQuestion === questionToDelete.id) {
+          setEditingQuestion(null);
+          setEditedQuestion(null);
+        }
+        setQuestionToDelete(null);
+      }
+    } catch (error) {
+      console.error('Error deleting question:', error);
+    }
+  };
+
+  const cancelDeleteQuestion = () => {
+    setQuestionToDelete(null);
+  };
+
+  const handleQuestionDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    const oldIndex = quizQuestions.findIndex((q) => q.id === active.id);
+    const newIndex = quizQuestions.findIndex((q) => q.id === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newQuestions = arrayMove(quizQuestions, oldIndex, newIndex);
+    setQuizQuestions(newQuestions);
+
+    // Update quiz_order in database
+    const updates = newQuestions.map((q, index) => ({
+      id: q.id,
+      quiz_order: index + 1,
+    }));
+
+    try {
+      await fetch('/api/admin/quiz-questions', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ quiz_name: selectedQuiz, questions: updates }),
+      });
+    } catch (error) {
+      console.error('Error reordering questions:', error);
+      await fetchQuizQuestions(selectedQuiz);
+    }
+  };
+
+  const fetchQuizQuestions = async (quizName: string) => {
+    if (!quizName) {
+      setQuizQuestions([]);
+      return;
+    }
+    setQuizQuestionsLoading(true);
+    try {
+      const response = await fetch(`/api/admin/quiz-questions?quiz_name=${encodeURIComponent(quizName)}`);
+      const result = await response.json();
+      if (result.data) {
+        setQuizQuestions(result.data);
+      }
+    } catch (error) {
+      console.error('Error fetching quiz questions:', error);
+    } finally {
+      setQuizQuestionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedQuiz) {
+      fetchQuizQuestions(selectedQuiz);
+    } else {
+      setQuizQuestions([]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedQuiz]);
+
   const getItemDisplayTitle = (item: Item): string => {
     switch (item.item_type) {
       case 'document':
@@ -710,6 +1219,173 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       default:
         return 'Unknown Item';
     }
+  };
+
+  const handleEditItem = () => {
+    if (selectedItem && selectedItem.item_type !== 'quiz') {
+      setEditedItem({ ...selectedItem });
+      setIsEditingItem(true);
+    }
+  };
+
+  const handleCancelEditItem = () => {
+    setIsEditingItem(false);
+    setEditedItem({});
+  };
+
+  const handleSaveItem = async () => {
+    if (!selectedItem || !editedItem.uuid) return;
+
+    try {
+      const response = await fetch('/api/admin/items', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editedItem),
+      });
+      const result = await response.json();
+      if (result.data) {
+        // Refresh items data
+        await fetchItems();
+        // Update selected item with new data
+        setSelectedItem(result.data);
+        setIsEditingItem(false);
+        setEditedItem({});
+      }
+    } catch (error) {
+      console.error('Error updating item:', error);
+    }
+  };
+
+  const updateEditedItemField = (field: string, value: string | null) => {
+    setEditedItem((prev) => ({
+      ...prev,
+      [field]: value || null,
+    }));
+  };
+
+  const handleDeleteItem = (item: Item) => {
+    const itemName = getItemDisplayTitle(item);
+    setItemToDelete({ uuid: item.uuid, name: itemName });
+  };
+
+  const confirmDeleteItem = async () => {
+    if (!itemToDelete) return;
+
+    try {
+      const response = await fetch(`/api/admin/items?uuid=${itemToDelete.uuid}`, {
+        method: 'DELETE',
+      });
+      const result = await response.json();
+      if (result.success) {
+        await fetchItems();
+        // Close modal if the deleted item was selected
+        if (selectedItem?.uuid === itemToDelete.uuid) {
+          setSelectedItem(null);
+          setIsEditingItem(false);
+          setEditedItem({});
+        }
+        setItemToDelete(null);
+      }
+    } catch (error) {
+      console.error('Error deleting item:', error);
+    }
+  };
+
+  const cancelDeleteItem = () => {
+    setItemToDelete(null);
+  };
+
+  const handleItemDragEnd = async (event: DragEndEvent, courseName: string) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+
+    // Find the course in itemsData
+    let targetCourse: CourseWithItems | null = null;
+    let targetCategoryGroup: CategoryWithCourses | null = null;
+
+    for (const categoryGroup of itemsData) {
+      const course = categoryGroup.courses.find((c) => c.course_name === courseName);
+      if (course) {
+        targetCourse = course;
+        targetCategoryGroup = categoryGroup;
+        break;
+      }
+    }
+
+    if (!targetCourse || !targetCategoryGroup) return;
+
+    const oldIndex = targetCourse.items.findIndex((item) => item.uuid === active.id);
+    const newIndex = targetCourse.items.findIndex((item) => item.uuid === over.id);
+
+    if (oldIndex === -1 || newIndex === -1) return;
+
+    const newItems = arrayMove(targetCourse.items, oldIndex, newIndex);
+    
+    // Update local state
+    const updatedItemsData = itemsData.map((categoryGroup) => {
+      if (categoryGroup.category === targetCategoryGroup!.category) {
+        return {
+          ...categoryGroup,
+          courses: categoryGroup.courses.map((course) =>
+            course.course_name === courseName
+              ? { ...course, items: newItems }
+              : course
+          ),
+        };
+      }
+      return categoryGroup;
+    });
+    setItemsData(updatedItemsData);
+
+    // Update item_order in database
+    const updates = newItems.map((item, index) => ({
+      uuid: item.uuid,
+      item_order: index + 1,
+    }));
+
+    try {
+      await fetch('/api/admin/items', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course: courseName, items: updates }),
+      });
+    } catch (error) {
+      console.error('Error reordering items:', error);
+      await fetchItems();
+    }
+  };
+
+  const handleAddItem = async () => {
+    if (!newItemCourse || !newItemType) return;
+
+    try {
+      const response = await fetch('/api/admin/items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          course: newItemCourse,
+          item_type: newItemType,
+          ...newItemFields,
+        }),
+      });
+      const result = await response.json();
+      if (result.data) {
+        await fetchItems();
+        setShowAddItem(false);
+        setNewItemCourse('');
+        setNewItemType('');
+        setNewItemFields({});
+      }
+    } catch (error) {
+      console.error('Error creating item:', error);
+    }
+  };
+
+  const updateNewItemField = (field: string, value: string) => {
+    setNewItemFields((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
   };
 
   const handleCourseDragEnd = async (event: DragEndEvent, category: string) => {
@@ -854,6 +1530,16 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 }`}
               >
                 Content
+              </button>
+              <button
+                onClick={() => setSelectedNavItem('Quizzes')}
+                className={`w-full text-left px-4 py-3 rounded-md transition-colors ${
+                  selectedNavItem === 'Quizzes'
+                    ? 'bg-zinc-100 dark:bg-zinc-800 text-black dark:text-zinc-50 font-medium'
+                    : 'hover:bg-zinc-50 dark:hover:bg-zinc-950 text-zinc-700 dark:text-zinc-400'
+                }`}
+              >
+                Quizzes
               </button>
             </nav>
           </div>
@@ -1313,9 +1999,330 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                 {/* Items Content */}
                 {selectedContentPill === 'Items' && (
                   <div className="mt-6 space-y-6">
-                    <h3 className="text-xl font-semibold text-black dark:text-zinc-50">
-                      Items
-                    </h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-semibold text-black dark:text-zinc-50">
+                        Items
+                      </h3>
+                      <button
+                        onClick={() => setShowAddItem(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-zinc-50 text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Add Item
+                      </button>
+                    </div>
+
+                    {showAddItem && (
+                      <div className="p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 space-y-3">
+                        <div>
+                          <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Course:</label>
+                          <select
+                            value={newItemCourse}
+                            onChange={(e) => setNewItemCourse(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                          >
+                            <option value="">Select a course</option>
+                            {groupedCourses.map((group) => (
+                              <optgroup key={group.category} label={group.category}>
+                                {group.courses.map((course) => (
+                                  <option key={course.uuid} value={course.course_name}>
+                                    {course.course_name}
+                                  </option>
+                                ))}
+                              </optgroup>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Item Type:</label>
+                          <select
+                            value={newItemType}
+                            onChange={(e) => {
+                              setNewItemType(e.target.value);
+                              setNewItemFields({});
+                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                          >
+                            <option value="">Select an item type</option>
+                            {itemTypes.map((type) => (
+                              <option key={type.item_type} value={type.item_type}>
+                                {type.item_type}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        {newItemType === 'document' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.document_title || ''}
+                                onChange={(e) => updateNewItemField('document_title', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Document title"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Description:</label>
+                              <textarea
+                                value={newItemFields.document_description || ''}
+                                onChange={(e) => updateNewItemField('document_description', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Document description"
+                                rows={4}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">URL:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.document_url || ''}
+                                onChange={(e) => updateNewItemField('document_url', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Document URL"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {newItemType === 'link' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.link_title || ''}
+                                onChange={(e) => updateNewItemField('link_title', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Link title"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">URL:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.link_url || ''}
+                                onChange={(e) => updateNewItemField('link_url', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Link URL"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {newItemType === 'podcast' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.podcast_title || ''}
+                                onChange={(e) => updateNewItemField('podcast_title', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Podcast title"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">URL:</label>
+                              <textarea
+                                value={newItemFields.podcast_url || ''}
+                                onChange={(e) => updateNewItemField('podcast_url', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Podcast URL (HTML)"
+                                rows={4}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {newItemType === 'quiz' && (
+                          <div>
+                            <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Quiz:</label>
+                            <select
+                              value={newItemFields.quiz || ''}
+                              onChange={(e) => updateNewItemField('quiz', e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                            >
+                              <option value="">Select a quiz</option>
+                              {quizzes.map((quiz) => (
+                                <option key={quiz.quiz_name} value={quiz.quiz_name}>
+                                  {quiz.quiz_name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        )}
+
+                        {newItemType === 'text' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.text_title || ''}
+                                onChange={(e) => updateNewItemField('text_title', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Text title"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Content:</label>
+                              <textarea
+                                value={newItemFields.text_content || ''}
+                                onChange={(e) => updateNewItemField('text_content', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Text content (HTML)"
+                                rows={8}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {newItemType === 'video' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.video_title || ''}
+                                onChange={(e) => updateNewItemField('video_title', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Video title"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">URL:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.video_url || ''}
+                                onChange={(e) => updateNewItemField('video_url', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Video URL"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Duration:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.video_duration || ''}
+                                onChange={(e) => updateNewItemField('video_duration', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Video duration"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Description:</label>
+                              <textarea
+                                value={newItemFields.video_description || ''}
+                                onChange={(e) => updateNewItemField('video_description', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Video description"
+                                rows={4}
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        {newItemType === 'video_doc' && (
+                          <>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Video Title:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.video_title || ''}
+                                onChange={(e) => updateNewItemField('video_title', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Video title"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Video URL:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.video_url || ''}
+                                onChange={(e) => updateNewItemField('video_url', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Video URL"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Video Duration:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.video_duration || ''}
+                                onChange={(e) => updateNewItemField('video_duration', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Video duration"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Video Description:</label>
+                              <textarea
+                                value={newItemFields.video_description || ''}
+                                onChange={(e) => updateNewItemField('video_description', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Video description"
+                                rows={4}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Document Title:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.document_title || ''}
+                                onChange={(e) => updateNewItemField('document_title', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Document title"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Document Description:</label>
+                              <textarea
+                                value={newItemFields.document_description || ''}
+                                onChange={(e) => updateNewItemField('document_description', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Document description"
+                                rows={4}
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Document URL:</label>
+                              <input
+                                type="text"
+                                value={newItemFields.document_url || ''}
+                                onChange={(e) => updateNewItemField('document_url', e.target.value)}
+                                className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                placeholder="Document URL"
+                              />
+                            </div>
+                          </>
+                        )}
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={handleAddItem}
+                            disabled={!newItemCourse || !newItemType}
+                            className="px-4 py-2 bg-black dark:bg-zinc-50 text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowAddItem(false);
+                              setNewItemCourse('');
+                              setNewItemType('');
+                              setNewItemFields({});
+                            }}
+                            className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
 
                     {itemsLoading ? (
                       <div className="text-center py-12">
@@ -1342,25 +2349,27 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                                     No items in this course
                                   </p>
                                 ) : (
-                                  <div className="ml-4 space-y-1">
-                                    {course.items.map((item) => (
-                                      <div
-                                        key={item.uuid}
-                                        onClick={() => setSelectedItem(item)}
-                                        className="flex items-center gap-2 p-3 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors cursor-pointer"
-                                      >
-                                        <span className="flex-1 text-sm text-black dark:text-zinc-50">
-                                          {getItemDisplayTitle(item)}
-                                        </span>
-                                        <div
-                                          className="p-1.5 text-zinc-500 dark:text-zinc-400"
-                                          title="View details"
-                                        >
-                                          <CircleEllipsis className="w-4 h-4" />
-                                        </div>
+                                  <DndContext
+                                    sensors={sensors}
+                                    collisionDetection={closestCenter}
+                                    onDragEnd={(e) => handleItemDragEnd(e, course.course_name)}
+                                  >
+                                    <SortableContext
+                                      items={course.items.map((item) => item.uuid)}
+                                      strategy={verticalListSortingStrategy}
+                                    >
+                                      <div className="ml-4 space-y-1">
+                                        {course.items.map((item) => (
+                                          <SortableItemItem
+                                            key={item.uuid}
+                                            item={item}
+                                            getItemDisplayTitle={getItemDisplayTitle}
+                                            onItemClick={setSelectedItem}
+                                          />
+                                        ))}
                                       </div>
-                                    ))}
-                                  </div>
+                                    </SortableContext>
+                                  </DndContext>
                                 )}
                               </div>
                             ))}
@@ -1369,6 +2378,356 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                       </div>
                     )}
                   </div>
+                )}
+              </div>
+            )}
+
+            {selectedNavItem === 'Quizzes' && (
+              <div className="space-y-6">
+                {!selectedQuiz ? (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xl font-semibold text-black dark:text-zinc-50">
+                        Quizzes
+                      </h3>
+                      <button
+                        onClick={() => setShowAddQuiz(true)}
+                        className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-zinc-50 text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                      >
+                        <Plus className="w-4 h-4" />
+                        Create New Quiz
+                      </button>
+                    </div>
+
+                    {showAddQuiz && (
+                      <div className="p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 space-y-3">
+                        <div>
+                          <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Quiz Name:</label>
+                          <input
+                            type="text"
+                            value={newQuizName}
+                            onChange={(e) => setNewQuizName(e.target.value)}
+                            className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                            placeholder="Enter quiz name"
+                          />
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={async () => {
+                              if (!newQuizName.trim()) return;
+                              try {
+                                const response = await fetch('/api/admin/quizzes', {
+                                  method: 'POST',
+                                  headers: { 'Content-Type': 'application/json' },
+                                  body: JSON.stringify({ quiz_name: newQuizName }),
+                                });
+                                const result = await response.json();
+                                if (result.data) {
+                                  await fetchQuizzes();
+                                  setShowAddQuiz(false);
+                                  setNewQuizName('');
+                                }
+                              } catch (error) {
+                                console.error('Error creating quiz:', error);
+                              }
+                            }}
+                            disabled={!newQuizName.trim()}
+                            className="px-4 py-2 bg-black dark:bg-zinc-50 text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            Save
+                          </button>
+                          <button
+                            onClick={() => {
+                              setShowAddQuiz(false);
+                              setNewQuizName('');
+                            }}
+                            className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {quizzesLoading ? (
+                      <div className="text-center py-12">
+                        <p className="text-zinc-600 dark:text-zinc-400">Loading...</p>
+                      </div>
+                    ) : quizzes.length === 0 ? (
+                      <div className="text-center py-12">
+                        <p className="text-zinc-600 dark:text-zinc-400">No quizzes found</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {quizzes.map((quiz) => (
+                          <button
+                            key={quiz.uuid}
+                            onClick={() => setSelectedQuiz(quiz.quiz_name)}
+                            className="w-full p-4 border border-zinc-200 dark:border-zinc-800 rounded-lg bg-white dark:bg-zinc-900 hover:bg-zinc-50 dark:hover:bg-zinc-950 transition-colors text-left"
+                          >
+                            <span className="text-black dark:text-zinc-50 font-medium">
+                              {quiz.quiz_name}
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    {/* Breadcrumbs */}
+                    <div className="flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 mb-4">
+                      <button
+                        onClick={() => {
+                          setSelectedQuiz('');
+                          setQuizQuestions([]);
+                          setEditingQuiz(null);
+                          setEditQuizName('');
+                        }}
+                        className="flex items-center gap-1 hover:text-black dark:hover:text-zinc-50 transition-colors"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Quizzes</span>
+                      </button>
+                      <span>/</span>
+                      {editingQuiz ? (
+                        <span className="text-black dark:text-zinc-50 font-medium">{selectedQuiz}</span>
+                      ) : (
+                        <span className="text-black dark:text-zinc-50 font-medium">{selectedQuiz}</span>
+                      )}
+                    </div>
+
+                    {/* Quiz Questions */}
+                    <div>
+                      <div className="flex items-center justify-between mb-6">
+                        {editingQuiz ? (
+                          <div className="flex items-center gap-3 flex-1">
+                            <input
+                              type="text"
+                              value={editQuizName}
+                              onChange={(e) => setEditQuizName(e.target.value)}
+                              className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50 text-xl font-semibold"
+                            />
+                            <button
+                              onClick={() => {
+                                const currentQuiz = quizzes.find(q => q.quiz_name === selectedQuiz);
+                                if (currentQuiz) {
+                                  handleSaveQuiz(currentQuiz.uuid);
+                                }
+                              }}
+                              className="p-2 text-green-600 dark:text-green-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                            >
+                              <Check className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                handleCancelEditQuiz();
+                              }}
+                              className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                            >
+                              <X className="w-5 h-5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-2">
+                            <h3 className="text-xl font-semibold text-black dark:text-zinc-50">
+                              {selectedQuiz}
+                            </h3>
+                            <button
+                              onClick={() => {
+                                const currentQuiz = quizzes.find(q => q.quiz_name === selectedQuiz);
+                                if (currentQuiz) {
+                                  handleEditQuiz(currentQuiz);
+                                }
+                              }}
+                              className="p-2 text-zinc-500 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                            >
+                              <Edit2 className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                const currentQuiz = quizzes.find(q => q.quiz_name === selectedQuiz);
+                                if (currentQuiz) {
+                                  handleDeleteQuiz(currentQuiz);
+                                }
+                              }}
+                              className="p-2 text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        )}
+                        {!editingQuiz && (
+                          <button
+                            onClick={() => {
+                              setShowAddQuestion(true);
+                              setNewQuestionText('');
+                              setNewQuestionOptions(['', '']);
+                              setNewQuestionCorrectAnswer(0);
+                            }}
+                            className="flex items-center gap-2 px-4 py-2 bg-black dark:bg-zinc-50 text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                          >
+                            <Plus className="w-4 h-4" />
+                            Add Question
+                          </button>
+                        )}
+                      </div>
+                      {showAddQuestion && (
+                        <div className="mb-6 p-4 border-2 border-zinc-300 dark:border-zinc-700 rounded-lg bg-white dark:bg-zinc-900">
+                          <div className="mb-4">
+                            <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">
+                              Question:
+                            </label>
+                            <textarea
+                              value={newQuestionText}
+                              onChange={(e) => setNewQuestionText(e.target.value)}
+                              className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                              rows={3}
+                              placeholder="Enter the question text"
+                            />
+                          </div>
+                          <div className="mb-4">
+                            <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-2">
+                              Options:
+                            </label>
+                            <div className="space-y-2">
+                              {newQuestionOptions.map((option, index) => (
+                                <div key={index} className="flex items-center gap-3">
+                                  <input
+                                    type="radio"
+                                    checked={newQuestionCorrectAnswer === index}
+                                    onChange={() => setNewQuestionCorrectAnswer(index)}
+                                    className="w-4 h-4 text-green-600 dark:text-green-400"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={option}
+                                    onChange={(e) => {
+                                      const newOptions = [...newQuestionOptions];
+                                      newOptions[index] = e.target.value;
+                                      setNewQuestionOptions(newOptions);
+                                    }}
+                                    className="flex-1 px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                                    placeholder={`Option ${index + 1}`}
+                                  />
+                                  {newQuestionCorrectAnswer === index && (
+                                    <span className="text-xs text-green-600 dark:text-green-400 font-medium">(Correct)</span>
+                                  )}
+                                  {newQuestionOptions.length > 2 && (
+                                    <button
+                                      onClick={() => {
+                                        const newOptions = newQuestionOptions.filter((_, i) => i !== index);
+                                        setNewQuestionOptions(newOptions);
+                                        if (newQuestionCorrectAnswer >= newOptions.length) {
+                                          setNewQuestionCorrectAnswer(newOptions.length - 1);
+                                        }
+                                      }}
+                                      className="p-2 text-red-600 dark:text-red-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                                    >
+                                      <X className="w-4 h-4" />
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            {newQuestionOptions.length < 10 && (
+                              <button
+                                onClick={() => {
+                                  setNewQuestionOptions([...newQuestionOptions, '']);
+                                }}
+                                className="mt-2 px-3 py-1.5 text-sm border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                              >
+                                + Add Option
+                              </button>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={handleAddQuestion}
+                              disabled={!newQuestionText.trim() || newQuestionOptions.filter(o => o.trim()).length < 2}
+                              className="px-4 py-2 bg-black dark:bg-zinc-50 text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium"
+                            >
+                              Save
+                            </button>
+                            <button
+                              onClick={() => {
+                                setShowAddQuestion(false);
+                                setNewQuestionText('');
+                                setNewQuestionOptions(['', '']);
+                                setNewQuestionCorrectAnswer(0);
+                              }}
+                              className="px-4 py-2 border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors text-sm font-medium"
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                      {quizQuestionsLoading ? (
+                        <div className="text-center py-12">
+                          <p className="text-zinc-600 dark:text-zinc-400">Loading questions...</p>
+                        </div>
+                      ) : quizQuestions.length === 0 && !showAddQuestion ? (
+                        <div className="text-center py-12">
+                          <p className="text-zinc-600 dark:text-zinc-400">No questions found for this quiz</p>
+                        </div>
+                      ) : (
+                        <DndContext
+                          sensors={sensors}
+                          collisionDetection={closestCenter}
+                          onDragEnd={handleQuestionDragEnd}
+                        >
+                          <SortableContext
+                            items={quizQuestions.map((q) => q.id)}
+                            strategy={verticalListSortingStrategy}
+                          >
+                            <div className="space-y-6">
+                              {quizQuestions.map((question) => (
+                                <SortableQuestionItem
+                                  key={question.id}
+                                  question={question}
+                                  isEditing={editingQuestion === question.id}
+                                  editedQuestion={editedQuestion}
+                                  onEdit={() => {
+                                    setEditingQuestion(question.id);
+                                    setEditedQuestion({
+                                      id: question.id,
+                                      question: question.question,
+                                      options: [...question.options],
+                                      correct_answer: question.correct_answer,
+                                    });
+                                  }}
+                                  onCancel={() => {
+                                    setEditingQuestion(null);
+                                    setEditedQuestion(null);
+                                  }}
+                                  onSave={handleSaveQuestion}
+                                  onDelete={() => handleDeleteQuestion(question)}
+                                  onQuestionChange={(value: string) => {
+                                    if (editedQuestion) {
+                                      setEditedQuestion({ ...editedQuestion, question: value });
+                                    }
+                                  }}
+                                  onOptionChange={(index: number, value: string) => {
+                                    if (editedQuestion) {
+                                      const newOptions = [...editedQuestion.options];
+                                      newOptions[index] = value;
+                                      setEditedQuestion({ ...editedQuestion, options: newOptions });
+                                    }
+                                  }}
+                                  onCorrectAnswerChange={(index: number) => {
+                                    if (editedQuestion) {
+                                      setEditedQuestion({ ...editedQuestion, correct_answer: index });
+                                    }
+                                  }}
+                                />
+                              ))}
+                            </div>
+                          </SortableContext>
+                        </DndContext>
+                      )}
+                    </div>
+                  </>
                 )}
               </div>
             )}
@@ -1446,7 +2805,11 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
       {selectedItem && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4"
-          onClick={() => setSelectedItem(null)}
+          onClick={() => {
+            setSelectedItem(null);
+            setIsEditingItem(false);
+            setEditedItem({});
+          }}
         >
           <div 
             className="bg-white dark:bg-zinc-900 rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 shadow-xl"
@@ -1456,12 +2819,36 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               <h2 className="text-2xl font-bold text-black dark:text-zinc-50">
                 Item Details
               </h2>
-              <button
-                onClick={() => setSelectedItem(null)}
-                className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
+              <div className="flex items-center gap-2">
+                {!isEditingItem && (
+                  <>
+                    {selectedItem.item_type !== 'quiz' && (
+                      <button
+                        onClick={handleEditItem}
+                        className="px-4 py-2 bg-black dark:bg-zinc-50 text-white dark:text-black rounded-lg hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors text-sm font-medium"
+                      >
+                        Edit Item
+                      </button>
+                    )}
+                    <button
+                      onClick={() => handleDeleteItem(selectedItem)}
+                      className="px-4 py-2 bg-red-600 dark:bg-red-500 text-white rounded-lg hover:bg-red-700 dark:hover:bg-red-600 transition-colors text-sm font-medium"
+                    >
+                      Delete Item
+                    </button>
+                  </>
+                )}
+                <button
+                  onClick={() => {
+                    setSelectedItem(null);
+                    setIsEditingItem(false);
+                    setEditedItem({});
+                  }}
+                  className="text-zinc-500 dark:text-zinc-400 hover:text-black dark:hover:text-zinc-50 transition-colors"
+                >
+                  <X className="w-6 h-6" />
+                </button>
+              </div>
             </div>
 
             <div className="space-y-4">
@@ -1472,210 +2859,571 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
 
               {selectedItem.item_type === 'document' && (
                 <>
-                  {selectedItem.document_title && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.document_title}</p>
-                    </div>
-                  )}
-                  {selectedItem.document_description && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Description:</span>
-                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.document_description}</p>
-                    </div>
-                  )}
-                  {selectedItem.document_url && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
-                      <a
-                        href={selectedItem.document_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
-                      >
-                        {selectedItem.document_url}
-                      </a>
-                    </div>
+                  {isEditingItem ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                        <input
+                          type="text"
+                          value={editedItem.document_title || ''}
+                          onChange={(e) => updateEditedItemField('document_title', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Description:</label>
+                        <textarea
+                          value={editedItem.document_description || ''}
+                          onChange={(e) => updateEditedItemField('document_description', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                          rows={4}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">URL:</label>
+                        <input
+                          type="text"
+                          value={editedItem.document_url || ''}
+                          onChange={(e) => updateEditedItemField('document_url', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {selectedItem.document_title && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.document_title}</p>
+                        </div>
+                      )}
+                      {selectedItem.document_description && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Description:</span>
+                          <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.document_description}</p>
+                        </div>
+                      )}
+                      {selectedItem.document_url && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
+                          <a
+                            href={selectedItem.document_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                          >
+                            {selectedItem.document_url}
+                          </a>
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
 
               {selectedItem.item_type === 'link' && (
                 <>
-                  {selectedItem.link_title && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.link_title}</p>
-                    </div>
-                  )}
-                  {selectedItem.link_url && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
-                      <a
-                        href={selectedItem.link_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
-                      >
-                        {selectedItem.link_url}
-                      </a>
-                    </div>
+                  {isEditingItem ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                        <input
+                          type="text"
+                          value={editedItem.link_title || ''}
+                          onChange={(e) => updateEditedItemField('link_title', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">URL:</label>
+                        <input
+                          type="text"
+                          value={editedItem.link_url || ''}
+                          onChange={(e) => updateEditedItemField('link_url', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {selectedItem.link_title && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.link_title}</p>
+                        </div>
+                      )}
+                      {selectedItem.link_url && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
+                          <a
+                            href={selectedItem.link_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                          >
+                            {selectedItem.link_url}
+                          </a>
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
 
               {selectedItem.item_type === 'podcast' && (
                 <>
-                  {selectedItem.podcast_title && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.podcast_title}</p>
-                    </div>
-                  )}
-                  {selectedItem.podcast_url && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
-                      <a
-                        href={selectedItem.podcast_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
-                      >
-                        {selectedItem.podcast_url}
-                      </a>
-                    </div>
+                  {isEditingItem ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                        <input
+                          type="text"
+                          value={editedItem.podcast_title || ''}
+                          onChange={(e) => updateEditedItemField('podcast_title', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">URL:</label>
+                        <textarea
+                          value={editedItem.podcast_url || ''}
+                          onChange={(e) => updateEditedItemField('podcast_url', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                          rows={4}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {selectedItem.podcast_title && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.podcast_title}</p>
+                        </div>
+                      )}
+                      {selectedItem.podcast_url && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
+                          <div 
+                            className="text-black dark:text-zinc-50"
+                            dangerouslySetInnerHTML={{ __html: selectedItem.podcast_url }}
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
 
-              {selectedItem.item_type === 'quiz' && selectedItem.quiz && (
-                <div>
-                  <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Quiz:</span>
-                  <p className="text-black dark:text-zinc-50">{selectedItem.quiz}</p>
-                </div>
+              {selectedItem.item_type === 'quiz' && (
+                <>
+                  {isEditingItem ? (
+                    <div>
+                      <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Quiz:</label>
+                      <input
+                        type="text"
+                        value={editedItem.quiz || ''}
+                        onChange={(e) => updateEditedItemField('quiz', e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                      />
+                    </div>
+                  ) : (
+                    selectedItem.quiz && (
+                      <div>
+                        <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Quiz:</span>
+                        <p className="text-black dark:text-zinc-50">{selectedItem.quiz}</p>
+                      </div>
+                    )
+                  )}
+                </>
               )}
 
               {selectedItem.item_type === 'text' && (
                 <>
-                  {selectedItem.text_title && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.text_title}</p>
-                    </div>
-                  )}
-                  {selectedItem.text_content && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Content:</span>
-                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.text_content}</p>
-                    </div>
+                  {isEditingItem ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                        <input
+                          type="text"
+                          value={editedItem.text_title || ''}
+                          onChange={(e) => updateEditedItemField('text_title', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Content:</label>
+                        <textarea
+                          value={editedItem.text_content || ''}
+                          onChange={(e) => updateEditedItemField('text_content', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                          rows={8}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {selectedItem.text_title && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.text_title}</p>
+                        </div>
+                      )}
+                      {selectedItem.text_content && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Content:</span>
+                          <div 
+                            className="text-black dark:text-zinc-50"
+                            dangerouslySetInnerHTML={{ __html: selectedItem.text_content }}
+                          />
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
 
               {selectedItem.item_type === 'video' && (
                 <>
-                  {selectedItem.video_title && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.video_title}</p>
-                    </div>
-                  )}
-                  {selectedItem.video_url && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
-                      <a
-                        href={selectedItem.video_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
-                      >
-                        {selectedItem.video_url}
-                      </a>
-                    </div>
-                  )}
-                  {selectedItem.video_duration && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Duration:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.video_duration}</p>
-                    </div>
-                  )}
-                  {selectedItem.video_description && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Description:</span>
-                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.video_description}</p>
-                    </div>
+                  {isEditingItem ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Title:</label>
+                        <input
+                          type="text"
+                          value={editedItem.video_title || ''}
+                          onChange={(e) => updateEditedItemField('video_title', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">URL:</label>
+                        <input
+                          type="text"
+                          value={editedItem.video_url || ''}
+                          onChange={(e) => updateEditedItemField('video_url', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Duration:</label>
+                        <input
+                          type="text"
+                          value={editedItem.video_duration || ''}
+                          onChange={(e) => updateEditedItemField('video_duration', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Description:</label>
+                        <textarea
+                          value={editedItem.video_description || ''}
+                          onChange={(e) => updateEditedItemField('video_description', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                          rows={4}
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {selectedItem.video_title && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Title:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.video_title}</p>
+                        </div>
+                      )}
+                      {selectedItem.video_url && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">URL:</span><br />
+                          <a
+                            href={selectedItem.video_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                          >
+                            {selectedItem.video_url}
+                          </a>
+                        </div>
+                      )}
+                      {selectedItem.video_duration && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Duration:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.video_duration}</p>
+                        </div>
+                      )}
+                      {selectedItem.video_description && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Description:</span>
+                          <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.video_description}</p>
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
 
               {selectedItem.item_type === 'video_doc' && (
                 <>
-                  {selectedItem.video_title && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Title:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.video_title}</p>
-                    </div>
-                  )}
-                  {selectedItem.video_url && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video URL:</span><br />
-                      <a
-                        href={selectedItem.video_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
-                      >
-                        {selectedItem.video_url}
-                      </a>
-                    </div>
-                  )}
-                  {selectedItem.video_duration && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Duration:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.video_duration}</p>
-                    </div>
-                  )}
-                  {selectedItem.video_description && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Description:</span>
-                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.video_description}</p>
-                    </div>
-                  )}
-                  {selectedItem.document_title && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document Title:</span>
-                      <p className="text-black dark:text-zinc-50">{selectedItem.document_title}</p>
-                    </div>
-                  )}
-                  {selectedItem.document_description && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document Description:</span>
-                      <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.document_description}</p>
-                    </div>
-                  )}
-                  {selectedItem.document_url && (
-                    <div>
-                      <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document URL:</span><br />
-                      <a
-                        href={selectedItem.document_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-blue-600 dark:text-blue-400 hover:underline break-all"
-                      >
-                        {selectedItem.document_url}
-                      </a>
-                    </div>
+                  {isEditingItem ? (
+                    <>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Video Title:</label>
+                        <input
+                          type="text"
+                          value={editedItem.video_title || ''}
+                          onChange={(e) => updateEditedItemField('video_title', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Video URL:</label>
+                        <input
+                          type="text"
+                          value={editedItem.video_url || ''}
+                          onChange={(e) => updateEditedItemField('video_url', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Video Duration:</label>
+                        <input
+                          type="text"
+                          value={editedItem.video_duration || ''}
+                          onChange={(e) => updateEditedItemField('video_duration', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Video Description:</label>
+                        <textarea
+                          value={editedItem.video_description || ''}
+                          onChange={(e) => updateEditedItemField('video_description', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                          rows={4}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Document Title:</label>
+                        <input
+                          type="text"
+                          value={editedItem.document_title || ''}
+                          onChange={(e) => updateEditedItemField('document_title', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Document Description:</label>
+                        <textarea
+                          value={editedItem.document_description || ''}
+                          onChange={(e) => updateEditedItemField('document_description', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                          rows={4}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-zinc-600 dark:text-zinc-400 mb-1">Document URL:</label>
+                        <input
+                          type="text"
+                          value={editedItem.document_url || ''}
+                          onChange={(e) => updateEditedItemField('document_url', e.target.value)}
+                          className="w-full px-3 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-black dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-zinc-50"
+                        />
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      {selectedItem.video_title && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Title:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.video_title}</p>
+                        </div>
+                      )}
+                      {selectedItem.video_url && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video URL:</span><br />
+                          <a
+                            href={selectedItem.video_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                          >
+                            {selectedItem.video_url}
+                          </a>
+                        </div>
+                      )}
+                      {selectedItem.video_duration && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Duration:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.video_duration}</p>
+                        </div>
+                      )}
+                      {selectedItem.video_description && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Video Description:</span>
+                          <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.video_description}</p>
+                        </div>
+                      )}
+                      {selectedItem.document_title && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document Title:</span>
+                          <p className="text-black dark:text-zinc-50">{selectedItem.document_title}</p>
+                        </div>
+                      )}
+                      {selectedItem.document_description && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document Description:</span>
+                          <p className="text-black dark:text-zinc-50 whitespace-pre-wrap">{selectedItem.document_description}</p>
+                        </div>
+                      )}
+                      {selectedItem.document_url && (
+                        <div>
+                          <span className="text-sm font-semibold text-zinc-600 dark:text-zinc-400">Document URL:</span><br />
+                          <a
+                            href={selectedItem.document_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 dark:text-blue-400 hover:underline break-all"
+                          >
+                            {selectedItem.document_url}
+                          </a>
+                        </div>
+                      )}
+                    </>
                   )}
                 </>
               )}
             </div>
 
             <div className="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800">
+              {isEditingItem ? (
+                <div className="flex gap-3">
+                  <button
+                    onClick={handleSaveItem}
+                    className="flex-1 py-2 px-4 rounded-lg bg-black dark:bg-zinc-50 text-white dark:text-black font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors"
+                  >
+                    Save
+                  </button>
+                  <button
+                    onClick={handleCancelEditItem}
+                    className="flex-1 py-2 px-4 rounded-lg border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  onClick={() => {
+                    setSelectedItem(null);
+                    setIsEditingItem(false);
+                    setEditedItem({});
+                  }}
+                  className="w-full py-2 px-4 rounded-lg border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                >
+                  Close
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Item Confirmation Modal */}
+      {itemToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg max-w-xl w-full p-8 shadow-xl">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-black dark:text-zinc-50 mb-2">
+                Delete Item
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Are you sure you want to delete the item <span className="font-semibold text-black dark:text-zinc-50">{itemToDelete.name}</span>?<br />This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-4">
               <button
-                onClick={() => setSelectedItem(null)}
-                className="w-full py-2 px-4 rounded-lg border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+                type="button"
+                onClick={cancelDeleteItem}
+                className="flex-1 py-2 px-4 rounded-lg border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
               >
-                Close
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteItem}
+                className="flex-1 py-2 px-4 rounded-lg bg-red-600 dark:bg-red-500 text-white font-medium hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Question Confirmation Modal */}
+      {questionToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg max-w-xl w-full p-8 shadow-xl">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-black dark:text-zinc-50 mb-2">
+                Delete Question
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Are you sure you want to delete this question?<br />
+                <span className="font-semibold text-black dark:text-zinc-50">{questionToDelete.question}</span><br />
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={cancelDeleteQuestion}
+                className="flex-1 py-2 px-4 rounded-lg border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteQuestion}
+                className="flex-1 py-2 px-4 rounded-lg bg-red-600 dark:bg-red-500 text-white font-medium hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Quiz Confirmation Modal */}
+      {quizToDelete && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg max-w-xl w-full p-8 shadow-xl">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-black dark:text-zinc-50 mb-2">
+                Delete Quiz
+              </h2>
+              <p className="text-sm text-zinc-600 dark:text-zinc-400">
+                Are you sure you want to delete the quiz <span className="font-semibold text-black dark:text-zinc-50">{quizToDelete.name}</span>?<br />
+                This will also delete all associated questions.<br />
+                This action cannot be undone.
+              </p>
+            </div>
+
+            <div className="flex gap-3 pt-4">
+              <button
+                type="button"
+                onClick={cancelDeleteQuiz}
+                className="flex-1 py-2 px-4 rounded-lg border border-zinc-300 dark:border-zinc-700 text-black dark:text-zinc-50 font-medium hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={confirmDeleteQuiz}
+                className="flex-1 py-2 px-4 rounded-lg bg-red-600 dark:bg-red-500 text-white font-medium hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
+              >
+                Delete
               </button>
             </div>
           </div>

@@ -1,8 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { checkAdminAuth } from '@/lib/admin';
 
 export async function GET() {
   try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
     // Fetch all categories sorted by category_order
     const { data: categories, error: categoriesError } = await supabase
       .from('categories')
@@ -92,6 +101,244 @@ export async function GET() {
     return NextResponse.json({ data: result });
   } catch (error) {
     console.error('Error in items API:', error);
+    return NextResponse.json(
+      { error: 'An error occurred' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { course, item_type, ...itemData } = body;
+
+    if (!course || !item_type) {
+      return NextResponse.json(
+        { error: 'course and item_type are required' },
+        { status: 400 }
+      );
+    }
+
+    // Get the max item_order for this course to set the new item at the end
+    const { data: maxOrderData, error: maxError } = await supabase
+      .from('items')
+      .select('item_order')
+      .eq('course', course)
+      .order('item_order', { ascending: false })
+      .limit(1)
+      .single();
+
+    const newOrder = maxOrderData ? maxOrderData.item_order + 1 : 1;
+
+    // Build the insert object with only the fields that are provided
+    const insertData: Record<string, any> = {
+      course,
+      item_type,
+      item_order: newOrder,
+    };
+
+    // Add fields based on item_type
+    if (item_type === 'document') {
+      if (itemData.document_title) insertData.document_title = itemData.document_title;
+      if (itemData.document_description) insertData.document_description = itemData.document_description;
+      if (itemData.document_url) insertData.document_url = itemData.document_url;
+    } else if (item_type === 'link') {
+      if (itemData.link_title) insertData.link_title = itemData.link_title;
+      if (itemData.link_url) insertData.link_url = itemData.link_url;
+    } else if (item_type === 'podcast') {
+      if (itemData.podcast_title) insertData.podcast_title = itemData.podcast_title;
+      if (itemData.podcast_url) insertData.podcast_url = itemData.podcast_url;
+    } else if (item_type === 'quiz') {
+      if (itemData.quiz) insertData.quiz = itemData.quiz;
+    } else if (item_type === 'text') {
+      if (itemData.text_title) insertData.text_title = itemData.text_title;
+      if (itemData.text_content) insertData.text_content = itemData.text_content;
+    } else if (item_type === 'video') {
+      if (itemData.video_title) insertData.video_title = itemData.video_title;
+      if (itemData.video_url) insertData.video_url = itemData.video_url;
+      if (itemData.video_duration) insertData.video_duration = itemData.video_duration;
+      if (itemData.video_description) insertData.video_description = itemData.video_description;
+    } else if (item_type === 'video_doc') {
+      if (itemData.video_title) insertData.video_title = itemData.video_title;
+      if (itemData.video_url) insertData.video_url = itemData.video_url;
+      if (itemData.video_duration) insertData.video_duration = itemData.video_duration;
+      if (itemData.video_description) insertData.video_description = itemData.video_description;
+      if (itemData.document_title) insertData.document_title = itemData.document_title;
+      if (itemData.document_description) insertData.document_description = itemData.document_description;
+      if (itemData.document_url) insertData.document_url = itemData.document_url;
+    }
+
+    const { data, error } = await supabase
+      .from('items')
+      .insert(insertData)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating item:', error);
+      return NextResponse.json(
+        { error: 'An error occurred creating item' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error('Error in create item API:', error);
+    return NextResponse.json(
+      { error: 'An error occurred' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { uuid, ...updateData } = body;
+
+    if (!uuid) {
+      return NextResponse.json(
+        { error: 'uuid is required' },
+        { status: 400 }
+      );
+    }
+
+    // Remove undefined/null values to avoid overwriting with null
+    const cleanedData: Record<string, any> = {};
+    Object.keys(updateData).forEach((key) => {
+      if (updateData[key] !== undefined && updateData[key] !== null && updateData[key] !== '') {
+        cleanedData[key] = updateData[key];
+      }
+    });
+
+    const { data, error } = await supabase
+      .from('items')
+      .update(cleanedData)
+      .eq('uuid', uuid)
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error updating item:', error);
+      return NextResponse.json(
+        { error: 'An error occurred updating item' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ data });
+  } catch (error) {
+    console.error('Error in update item API:', error);
+    return NextResponse.json(
+      { error: 'An error occurred' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PATCH(request: NextRequest) {
+  try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+    const { course, items } = body; // Array of { uuid, item_order }
+
+    if (!course || !items || !Array.isArray(items)) {
+      return NextResponse.json(
+        { error: 'course and items array are required' },
+        { status: 400 }
+      );
+    }
+
+    // Update all items in this course
+    const updates = items.map((item: { uuid: string; item_order: number }) =>
+      supabase
+        .from('items')
+        .update({ item_order: item.item_order })
+        .eq('uuid', item.uuid)
+    );
+
+    const results = await Promise.all(updates);
+    const errors = results.filter((r) => r.error);
+
+    if (errors.length > 0) {
+      console.error('Error updating item orders:', errors);
+      return NextResponse.json(
+        { error: 'An error occurred updating item orders' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error in reorder items API:', error);
+    return NextResponse.json(
+      { error: 'An error occurred' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    // Check admin authentication
+    if (!(await checkAdminAuth())) {
+      return NextResponse.json(
+        { error: 'Unauthorized' },
+        { status: 401 }
+      );
+    }
+
+    const { searchParams } = new URL(request.url);
+    const uuid = searchParams.get('uuid');
+
+    if (!uuid) {
+      return NextResponse.json(
+        { error: 'uuid parameter is required' },
+        { status: 400 }
+      );
+    }
+
+    const { error } = await supabase
+      .from('items')
+      .delete()
+      .eq('uuid', uuid);
+
+    if (error) {
+      console.error('Error deleting item:', error);
+      return NextResponse.json(
+        { error: 'An error occurred deleting item' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error in delete item API:', error);
     return NextResponse.json(
       { error: 'An error occurred' },
       { status: 500 }

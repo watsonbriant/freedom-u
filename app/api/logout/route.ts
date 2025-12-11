@@ -8,6 +8,9 @@ export async function POST() {
     // Clear the session cookie
     cookieStore.delete('freedomu_session');
     
+    // Clear the admin session cookie
+    cookieStore.delete('freedomu_admin_session');
+    
     // Clear the email cookie
     cookieStore.delete('freedomu_email');
 

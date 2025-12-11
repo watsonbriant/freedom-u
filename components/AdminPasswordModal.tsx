@@ -19,15 +19,29 @@ export default function AdminPasswordModal({ isOpen, onClose, onSuccess }: Admin
     setError('');
     setIsLoading(true);
 
-    if (password === 'Freedom2002!@!@') {
-      setPassword('');
-      onSuccess();
-      onClose();
-    } else {
-      setError('Incorrect password. Please try again.');
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setPassword('');
+        onSuccess();
+        onClose();
+      } else {
+        setError(data.error || 'Incorrect password. Please try again.');
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.');
+    } finally {
+      setIsLoading(false);
     }
-    
-    setIsLoading(false);
   };
 
   if (!isOpen) return null;
