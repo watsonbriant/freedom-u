@@ -14,6 +14,7 @@ export function getAllowedAdminEmails(): string[] {
     'jharmon@freedomhouse.cc',
     'watson.briant@gmail.com',
     'tsteinmann@freedomhouse.cc',
+    'jprice@freedomhouse.cc',
   ];
 }
 
